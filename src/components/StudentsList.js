@@ -1,6 +1,277 @@
 // components/StudentsList.js
 import React, { useState } from 'react';
-import { Users, Plus, Search, Edit, Trash2, Save, X, UserPlus, User, Calendar, Phone, MapPin } from 'lucide-react';
+import { Users, Plus, Search, Edit, Trash2, Save, X, UserPlus, User, Calendar, Phone, MapPin, AlertTriangle, CheckCircle } from 'lucide-react';
+
+// Modal de confirmation de suppression
+const DeleteConfirmationModal = ({ student, isOpen, onClose, onConfirm, loading }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 2000,
+      padding: '1rem'
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '0.75rem',
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+        width: '100%',
+        maxWidth: '480px',
+        overflow: 'hidden'
+      }}>
+        {/* Header */}
+        <div style={{
+          padding: '1.5rem',
+          borderBottom: '1px solid #e5e7eb',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          backgroundColor: '#fef2f2'
+        }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            backgroundColor: '#fee2e2',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <AlertTriangle style={{ width: '20px', height: '20px', color: '#dc2626' }} />
+          </div>
+          <div>
+            <h3 style={{ 
+              margin: 0, 
+              fontSize: '1.25rem', 
+              fontWeight: '600', 
+              color: '#1f2937' 
+            }}>
+              Confirmer la suppression
+            </h3>
+            <p style={{ 
+              margin: '0.25rem 0 0 0', 
+              fontSize: '0.875rem', 
+              color: '#6b7280' 
+            }}>
+              Cette action est irréversible
+            </p>
+          </div>
+        </div>
+
+        {/* Contenu */}
+        <div style={{ padding: '1.5rem' }}>
+          <div style={{ 
+            backgroundColor: '#f8f9fa', 
+            padding: '1rem', 
+            borderRadius: '0.5rem',
+            border: '1px solid #e9ecef'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+              <User style={{ width: '16px', height: '16px', color: '#6b7280' }} />
+              <span style={{ fontWeight: '600', color: '#374151' }}>Étudiant à supprimer :</span>
+            </div>
+            <div style={{ paddingLeft: '1.75rem' }}>
+              <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: '#374151' }}>
+                <strong>Nom :</strong> {student?.prenom} {student?.nom}
+              </p>
+              <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: '#374151' }}>
+                <strong>Matricule :</strong> {student?.matricule}
+              </p>
+              <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: '#374151' }}>
+                <strong>Classe :</strong> {student?.classe}
+              </p>
+            </div>
+          </div>
+
+          <div style={{ 
+            marginTop: '1rem',
+            padding: '1rem',
+            backgroundColor: '#fffbeb',
+            border: '1px solid #fed7aa',
+            borderRadius: '0.5rem'
+          }}>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <AlertTriangle style={{ width: '16px', height: '16px', color: '#d97706', flexShrink: 0 }} />
+              <div>
+                <p style={{ 
+                  margin: 0, 
+                  fontSize: '0.875rem', 
+                  color: '#92400e',
+                  fontWeight: '500'
+                }}>
+                  Attention
+                </p>
+                <p style={{ 
+                  margin: '0.25rem 0 0 0', 
+                  fontSize: '0.75rem', 
+                  color: '#92400e',
+                  lineHeight: '1.4'
+                }}>
+                  La suppression de cet étudiant entraînera également la perte de toutes ses notes et données associées. Cette action ne peut pas être annulée.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div style={{
+          padding: '1.25rem 1.5rem',
+          borderTop: '1px solid #e5e7eb',
+          backgroundColor: '#fafafa',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          gap: '0.75rem'
+        }}>
+          <button
+            onClick={onClose}
+            disabled={loading}
+            style={{
+              padding: '0.625rem 1.5rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.5rem',
+              backgroundColor: 'white',
+              color: '#374151',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s',
+              opacity: loading ? 0.6 : 1
+            }}
+            onMouseOver={(e) => !loading && (e.target.style.backgroundColor = '#f9fafb')}
+            onMouseOut={(e) => !loading && (e.target.style.backgroundColor = 'white')}
+          >
+            Annuler
+          </button>
+          
+          <button
+            onClick={() => onConfirm(student.id)}
+            disabled={loading}
+            style={{
+              padding: '0.625rem 1.5rem',
+              border: 'none',
+              borderRadius: '0.5rem',
+              backgroundColor: loading ? '#9ca3af' : '#dc2626',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s',
+              opacity: loading ? 0.6 : 1
+            }}
+            onMouseOver={(e) => !loading && (e.target.style.backgroundColor = '#b91c1c')}
+            onMouseOut={(e) => !loading && (e.target.style.backgroundColor = '#dc2626')}
+          >
+            <Trash2 style={{ width: '14px', height: '14px' }} />
+            {loading ? 'Suppression...' : 'Supprimer définitivement'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Modal de succès
+const SuccessModal = ({ isOpen, onClose, message }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 2000,
+      padding: '1rem'
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '0.75rem',
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+        width: '100%',
+        maxWidth: '400px',
+        overflow: 'hidden',
+        textAlign: 'center'
+      }}>
+        <div style={{ padding: '2rem 1.5rem' }}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            backgroundColor: '#d1fae5',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 1rem'
+          }}>
+            <CheckCircle style={{ width: '32px', height: '32px', color: '#10b981' }} />
+          </div>
+          
+          <h3 style={{ 
+            margin: '0 0 0.5rem 0', 
+            fontSize: '1.25rem', 
+            fontWeight: '600', 
+            color: '#1f2937' 
+          }}>
+            Succès
+          </h3>
+          
+          <p style={{ 
+            margin: 0, 
+            fontSize: '0.875rem', 
+            color: '#6b7280',
+            lineHeight: '1.5'
+          }}>
+            {message}
+          </p>
+        </div>
+
+        <div style={{
+          padding: '1rem 1.5rem',
+          borderTop: '1px solid #e5e7eb',
+          display: 'flex',
+          justifyContent: 'center'
+        }}>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '0.625rem 1.5rem',
+              border: 'none',
+              borderRadius: '0.5rem',
+              backgroundColor: '#10b981',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = '#059669'}
+            onMouseOut={(e) => e.target.style.backgroundColor = '#10b981'}
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Modal d'édition d'étudiant
 const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
@@ -18,7 +289,6 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Remplir le formulaire avec les données de l'étudiant
   React.useEffect(() => {
     if (student && isOpen) {
       console.log('Chargement données étudiant pour édition:', student);
@@ -44,7 +314,6 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
       [name]: value
     }));
     
-    // Supprimer l'erreur du champ modifié
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -534,6 +803,13 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
     adresse: ''
   });
 
+  // États pour la suppression
+  const [studentToDelete, setStudentToDelete] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
   const generateMatricule = () => {
     const year = new Date().getFullYear();
     const random = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
@@ -571,6 +847,10 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
       });
       setShowAddModal(false);
       setErrors({});
+      
+      // Afficher le message de succès
+      setSuccessMessage(`L'étudiant ${student.prenom} ${student.nom} a été inscrit avec succès.`);
+      setShowSuccessModal(true);
     } catch (error) {
       console.error('Erreur lors de l\'ajout:', error);
     } finally {
@@ -590,6 +870,10 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
       await onEditStudent(studentId, formData);
       setShowEditModal(false);
       setEditingStudent(null);
+      
+      // Afficher le message de succès
+      setSuccessMessage(`Les informations de l'étudiant ont été mises à jour avec succès.`);
+      setShowSuccessModal(true);
       return true;
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
@@ -600,6 +884,36 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
   const handleCloseEditModal = () => {
     setShowEditModal(false);
     setEditingStudent(null);
+  };
+
+  const handleDeleteClick = (student) => {
+    setStudentToDelete(student);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async (studentId) => {
+    setDeleting(true);
+    
+    try {
+      await onDeleteStudent(studentId);
+      setShowDeleteModal(false);
+      setStudentToDelete(null);
+      
+      // Afficher le message de succès
+      setSuccessMessage("L'étudiant a été supprimé avec succès.");
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (!deleting) {
+      setShowDeleteModal(false);
+      setStudentToDelete(null);
+    }
   };
 
   const filteredStudents = students.filter(student => {
@@ -1043,10 +1357,13 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                           color: '#555',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'center',
+                          transition: 'all 0.2s'
                         }}
                         title="Modifier"
                         onClick={() => handleEdit(student)}
+                        onMouseOver={(e) => e.target.style.backgroundColor = '#f9fafb'}
+                        onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
                       >
                         <Edit style={{ width: '14px', height: '14px' }} />
                       </button>
@@ -1060,10 +1377,13 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                           color: '#dc2626',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'center',
+                          transition: 'all 0.2s'
                         }}
                         title="Supprimer"
-                        onClick={() => onDeleteStudent(student.id)}
+                        onClick={() => handleDeleteClick(student)}
+                        onMouseOver={(e) => e.target.style.backgroundColor = '#fef2f2'}
+                        onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
                       >
                         <Trash2 style={{ width: '14px', height: '14px' }} />
                       </button>
@@ -1512,6 +1832,22 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
         isOpen={showEditModal}
         onClose={handleCloseEditModal}
         onSave={handleSaveEdit}
+      />
+
+      {/* Modal de confirmation de suppression */}
+      <DeleteConfirmationModal
+        student={studentToDelete}
+        isOpen={showDeleteModal}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+        loading={deleting}
+      />
+
+      {/* Modal de succès */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        message={successMessage}
       />
 
       <style jsx>{`
