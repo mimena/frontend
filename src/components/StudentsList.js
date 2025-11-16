@@ -112,8 +112,8 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
     }}>
       <div style={{
         backgroundColor: 'white',
-        borderRadius: '0.75rem',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        borderRadius: '0.5rem',
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
         width: '100%',
         maxWidth: '600px',
         maxHeight: '90vh',
@@ -121,20 +121,20 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
       }}>
         {/* Header */}
         <div style={{
-          padding: '1.5rem',
+          padding: '1.25rem',
           borderBottom: '1px solid #e5e7eb',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          backgroundColor: '#f8fafc'
+          backgroundColor: '#fafafa'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <User style={{ width: '24px', height: '24px', color: '#3b82f6' }} />
+            <User style={{ width: '20px', height: '20px', color: '#555' }} />
             <h2 style={{ 
               margin: 0, 
-              fontSize: '1.5rem', 
+              fontSize: '1.25rem', 
               fontWeight: '600', 
-              color: '#1f2937' 
+              color: '#333' 
             }}>
               Modifier l'étudiant
             </h2>
@@ -145,37 +145,34 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
             style={{
               padding: '0.5rem',
               border: 'none',
-              borderRadius: '0.375rem',
+              borderRadius: '0.25rem',
               backgroundColor: 'transparent',
               cursor: saving ? 'not-allowed' : 'pointer',
               opacity: saving ? 0.5 : 1
             }}
           >
-            <X style={{ width: '20px', height: '20px', color: '#6b7280' }} />
+            <X style={{ width: '18px', height: '18px', color: '#666' }} />
           </button>
         </div>
 
         {/* Contenu */}
         <div style={{ 
-          padding: '1.5rem',
-          maxHeight: 'calc(90vh - 140px)',
+          padding: '1.25rem',
+          maxHeight: 'calc(90vh - 120px)',
           overflowY: 'auto'
         }}>
           <form onSubmit={handleSubmit}>
-            <div style={{ display: 'grid', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gap: '1.25rem' }}>
               
               {/* Informations de base */}
-              <div style={{
-                padding: '1rem',
-                backgroundColor: '#f8fafc',
-                borderRadius: '0.5rem',
-                border: '1px solid #e2e8f0'
-              }}>
+              <div>
                 <h3 style={{
                   margin: '0 0 1rem 0',
-                  fontSize: '1.125rem',
-                  fontWeight: '500',
-                  color: '#374151'
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  color: '#333',
+                  paddingBottom: '0.5rem',
+                  borderBottom: '1px solid #e5e7eb'
                 }}>
                   Informations personnelles
                 </h3>
@@ -186,7 +183,7 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                       display: 'block',
                       fontSize: '0.875rem',
                       fontWeight: '500',
-                      color: '#374151',
+                      color: '#555',
                       marginBottom: '0.5rem'
                     }}>
                       Matricule
@@ -199,16 +196,16 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                       disabled={saving}
                       style={{
                         width: '100%',
-                        padding: '0.75rem',
+                        padding: '0.625rem',
                         border: '1px solid #d1d5db',
                         borderRadius: '0.375rem',
                         fontSize: '0.875rem',
-                        backgroundColor: '#f9fafb',
+                        backgroundColor: '#f9f9f9',
                         cursor: 'not-allowed'
                       }}
                       readOnly
                     />
-                    <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    <small style={{ color: '#777', fontSize: '0.75rem' }}>
                       Le matricule ne peut pas être modifié
                     </small>
                   </div>
@@ -218,10 +215,10 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                       display: 'block',
                       fontSize: '0.875rem',
                       fontWeight: '500',
-                      color: '#374151',
+                      color: '#555',
                       marginBottom: '0.5rem'
                     }}>
-                      Genre *
+                      Genre
                     </label>
                     <select
                       name="genre"
@@ -230,8 +227,8 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                       disabled={saving}
                       style={{
                         width: '100%',
-                        padding: '0.75rem',
-                        border: `1px solid ${errors.genre ? '#ef4444' : '#d1d5db'}`,
+                        padding: '0.625rem',
+                        border: `1px solid ${errors.genre ? '#dc2626' : '#d1d5db'}`,
                         borderRadius: '0.375rem',
                         fontSize: '0.875rem'
                       }}
@@ -248,7 +245,7 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                       display: 'block',
                       fontSize: '0.875rem',
                       fontWeight: '500',
-                      color: '#374151',
+                      color: '#555',
                       marginBottom: '0.5rem'
                     }}>
                       Nom *
@@ -261,14 +258,14 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                       disabled={saving}
                       style={{
                         width: '100%',
-                        padding: '0.75rem',
-                        border: `1px solid ${errors.nom ? '#ef4444' : '#d1d5db'}`,
+                        padding: '0.625rem',
+                        border: `1px solid ${errors.nom ? '#dc2626' : '#d1d5db'}`,
                         borderRadius: '0.375rem',
                         fontSize: '0.875rem'
                       }}
                     />
                     {errors.nom && (
-                      <span style={{ color: '#ef4444', fontSize: '0.75rem' }}>
+                      <span style={{ color: '#dc2626', fontSize: '0.75rem' }}>
                         {errors.nom}
                       </span>
                     )}
@@ -279,7 +276,7 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                       display: 'block',
                       fontSize: '0.875rem',
                       fontWeight: '500',
-                      color: '#374151',
+                      color: '#555',
                       marginBottom: '0.5rem'
                     }}>
                       Prénom *
@@ -292,14 +289,14 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                       disabled={saving}
                       style={{
                         width: '100%',
-                        padding: '0.75rem',
-                        border: `1px solid ${errors.prenom ? '#ef4444' : '#d1d5db'}`,
+                        padding: '0.625rem',
+                        border: `1px solid ${errors.prenom ? '#dc2626' : '#d1d5db'}`,
                         borderRadius: '0.375rem',
                         fontSize: '0.875rem'
                       }}
                     />
                     {errors.prenom && (
-                      <span style={{ color: '#ef4444', fontSize: '0.75rem' }}>
+                      <span style={{ color: '#dc2626', fontSize: '0.75rem' }}>
                         {errors.prenom}
                       </span>
                     )}
@@ -308,17 +305,14 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
               </div>
 
               {/* Informations scolaires */}
-              <div style={{
-                padding: '1rem',
-                backgroundColor: '#f0f9ff',
-                borderRadius: '0.5rem',
-                border: '1px solid #bae6fd'
-              }}>
+              <div>
                 <h3 style={{
                   margin: '0 0 1rem 0',
-                  fontSize: '1.125rem',
-                  fontWeight: '500',
-                  color: '#374151'
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  color: '#333',
+                  paddingBottom: '0.5rem',
+                  borderBottom: '1px solid #e5e7eb'
                 }}>
                   Informations scolaires
                 </h3>
@@ -328,7 +322,7 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                     display: 'block',
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: '#374151',
+                    color: '#555',
                     marginBottom: '0.5rem'
                   }}>
                     Classe *
@@ -342,14 +336,14 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                     placeholder="ex: Terminal A, 1ère S, etc."
                     style={{
                       width: '100%',
-                      padding: '0.75rem',
-                      border: `1px solid ${errors.classe ? '#ef4444' : '#d1d5db'}`,
+                      padding: '0.625rem',
+                      border: `1px solid ${errors.classe ? '#dc2626' : '#d1d5db'}`,
                       borderRadius: '0.375rem',
                       fontSize: '0.875rem'
                     }}
                   />
                   {errors.classe && (
-                    <span style={{ color: '#ef4444', fontSize: '0.75rem' }}>
+                    <span style={{ color: '#dc2626', fontSize: '0.75rem' }}>
                       {errors.classe}
                     </span>
                   )}
@@ -357,17 +351,14 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
               </div>
 
               {/* Informations personnelles complémentaires */}
-              <div style={{
-                padding: '1rem',
-                backgroundColor: '#f0fdf4',
-                borderRadius: '0.5rem',
-                border: '1px solid #bbf7d0'
-              }}>
+              <div>
                 <h3 style={{
                   margin: '0 0 1rem 0',
-                  fontSize: '1.125rem',
-                  fontWeight: '500',
-                  color: '#374151'
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  color: '#333',
+                  paddingBottom: '0.5rem',
+                  borderBottom: '1px solid #e5e7eb'
                 }}>
                   Informations complémentaires
                 </h3>
@@ -380,10 +371,10 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                       gap: '0.5rem',
                       fontSize: '0.875rem',
                       fontWeight: '500',
-                      color: '#374151',
+                      color: '#555',
                       marginBottom: '0.5rem'
                     }}>
-                      <Calendar style={{ width: '16px', height: '16px' }} />
+                      <Calendar style={{ width: '14px', height: '14px' }} />
                       Date de naissance
                     </label>
                     <input
@@ -394,7 +385,7 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                       disabled={saving}
                       style={{
                         width: '100%',
-                        padding: '0.75rem',
+                        padding: '0.625rem',
                         border: '1px solid #d1d5db',
                         borderRadius: '0.375rem',
                         fontSize: '0.875rem'
@@ -409,10 +400,10 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                       gap: '0.5rem',
                       fontSize: '0.875rem',
                       fontWeight: '500',
-                      color: '#374151',
+                      color: '#555',
                       marginBottom: '0.5rem'
                     }}>
-                      <Phone style={{ width: '16px', height: '16px' }} />
+                      <Phone style={{ width: '14px', height: '14px' }} />
                       Téléphone
                     </label>
                     <input
@@ -424,7 +415,7 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                       placeholder="ex: +261 34 12 345 67"
                       style={{
                         width: '100%',
-                        padding: '0.75rem',
+                        padding: '0.625rem',
                         border: '1px solid #d1d5db',
                         borderRadius: '0.375rem',
                         fontSize: '0.875rem'
@@ -439,10 +430,10 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                       gap: '0.5rem',
                       fontSize: '0.875rem',
                       fontWeight: '500',
-                      color: '#374151',
+                      color: '#555',
                       marginBottom: '0.5rem'
                     }}>
-                      <MapPin style={{ width: '16px', height: '16px' }} />
+                      <MapPin style={{ width: '14px', height: '14px' }} />
                       Adresse
                     </label>
                     <textarea
@@ -454,7 +445,7 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                       placeholder="Adresse complète..."
                       style={{
                         width: '100%',
-                        padding: '0.75rem',
+                        padding: '0.625rem',
                         border: '1px solid #d1d5db',
                         borderRadius: '0.375rem',
                         fontSize: '0.875rem',
@@ -470,9 +461,9 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
 
         {/* Footer */}
         <div style={{
-          padding: '1.5rem',
+          padding: '1.25rem',
           borderTop: '1px solid #e5e7eb',
-          backgroundColor: '#f8fafc',
+          backgroundColor: '#fafafa',
           display: 'flex',
           justifyContent: 'flex-end',
           gap: '0.75rem'
@@ -482,11 +473,11 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
             onClick={onClose}
             disabled={saving}
             style={{
-              padding: '0.75rem 1.5rem',
+              padding: '0.625rem 1.25rem',
               border: '1px solid #d1d5db',
               borderRadius: '0.375rem',
               backgroundColor: 'white',
-              color: '#374151',
+              color: '#555',
               fontSize: '0.875rem',
               fontWeight: '500',
               cursor: saving ? 'not-allowed' : 'pointer',
@@ -501,10 +492,10 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
             onClick={handleSubmit}
             disabled={saving}
             style={{
-              padding: '0.75rem 1.5rem',
+              padding: '0.625rem 1.25rem',
               border: 'none',
               borderRadius: '0.375rem',
-              backgroundColor: saving ? '#9ca3af' : '#3b82f6',
+              backgroundColor: saving ? '#9ca3af' : '#555',
               color: 'white',
               fontSize: '0.875rem',
               fontWeight: '500',
@@ -514,7 +505,7 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
               gap: '0.5rem'
             }}
           >
-            <Save style={{ width: '16px', height: '16px' }} />
+            <Save style={{ width: '14px', height: '14px' }} />
             {saving ? 'Sauvegarde...' : 'Sauvegarder'}
           </button>
         </div>
@@ -641,7 +632,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
       {students.length > 0 && (
         <div style={{
           padding: '1.5rem',
-          backgroundColor: '#f8fafc',
+          backgroundColor: '#fafafa',
           borderBottom: '1px solid #e5e7eb'
         }}>
           <div style={{
@@ -652,9 +643,9 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
             <div style={{
               padding: '1.25rem',
               backgroundColor: 'white',
-              borderRadius: '0.75rem',
+              borderRadius: '0.5rem',
               border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
             }}>
               <div style={{
                 display: 'flex',
@@ -665,29 +656,29 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <div style={{
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: '#6b7280',
+                    color: '#666',
                     marginBottom: '0.5rem'
                   }}>
                     Total Étudiants
                   </div>
                   <div style={{
-                    fontSize: '2rem',
+                    fontSize: '1.75rem',
                     fontWeight: 'bold',
-                    color: '#3b82f6'
+                    color: '#333'
                   }}>
                     {students.length}
                   </div>
                 </div>
                 <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '0.75rem',
-                  backgroundColor: '#dbeafe',
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '0.5rem',
+                  backgroundColor: '#f5f5f5',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <Users style={{ width: '24px', height: '24px', color: '#3b82f6' }} />
+                  <Users style={{ width: '20px', height: '20px', color: '#555' }} />
                 </div>
               </div>
             </div>
@@ -695,9 +686,9 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
             <div style={{
               padding: '1.25rem',
               backgroundColor: 'white',
-              borderRadius: '0.75rem',
+              borderRadius: '0.5rem',
               border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
             }}>
               <div style={{
                 display: 'flex',
@@ -708,30 +699,29 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <div style={{
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: '#6b7280',
+                    color: '#666',
                     marginBottom: '0.5rem'
                   }}>
                     Classes
                   </div>
                   <div style={{
-                    fontSize: '2rem',
+                    fontSize: '1.75rem',
                     fontWeight: 'bold',
-                    color: '#10b981'
+                    color: '#333'
                   }}>
                     {classes.length}
                   </div>
                 </div>
                 <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '0.75rem',
-                  backgroundColor: '#d1fae5',
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '0.5rem',
+                  backgroundColor: '#f5f5f5',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.5rem'
+                  justifyContent: 'center'
                 }}>
-                  📚
+                  <span style={{ fontSize: '1.25rem' }}>📚</span>
                 </div>
               </div>
             </div>
@@ -739,9 +729,9 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
             <div style={{
               padding: '1.25rem',
               backgroundColor: 'white',
-              borderRadius: '0.75rem',
+              borderRadius: '0.5rem',
               border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
             }}>
               <div style={{
                 display: 'flex',
@@ -752,30 +742,29 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <div style={{
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: '#6b7280',
+                    color: '#666',
                     marginBottom: '0.5rem'
                   }}>
                     Garçons
                   </div>
                   <div style={{
-                    fontSize: '2rem',
+                    fontSize: '1.75rem',
                     fontWeight: 'bold',
-                    color: '#6366f1'
+                    color: '#333'
                   }}>
                     {students.filter(s => s.genre === 'M').length}
                   </div>
                 </div>
                 <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '0.75rem',
-                  backgroundColor: '#e0e7ff',
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '0.5rem',
+                  backgroundColor: '#f5f5f5',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.5rem'
+                  justifyContent: 'center'
                 }}>
-                  👨‍🎓
+                  <span style={{ fontSize: '1.25rem' }}>👨‍🎓</span>
                 </div>
               </div>
             </div>
@@ -783,9 +772,9 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
             <div style={{
               padding: '1.25rem',
               backgroundColor: 'white',
-              borderRadius: '0.75rem',
+              borderRadius: '0.5rem',
               border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
             }}>
               <div style={{
                 display: 'flex',
@@ -796,30 +785,29 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <div style={{
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: '#6b7280',
+                    color: '#666',
                     marginBottom: '0.5rem'
                   }}>
                     Filles
                   </div>
                   <div style={{
-                    fontSize: '2rem',
+                    fontSize: '1.75rem',
                     fontWeight: 'bold',
-                    color: '#ec4899'
+                    color: '#333'
                   }}>
                     {students.filter(s => s.genre === 'F').length}
                   </div>
                 </div>
                 <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '0.75rem',
-                  backgroundColor: '#fce7f3',
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '0.5rem',
+                  backgroundColor: '#f5f5f5',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.5rem'
+                  justifyContent: 'center'
                 }}>
-                  👩‍🎓
+                  <span style={{ fontSize: '1.25rem' }}>👩‍🎓</span>
                 </div>
               </div>
             </div>
@@ -848,8 +836,8 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
             <Search style={{
               position: 'absolute',
               left: '1rem',
-              width: '20px',
-              height: '20px',
+              width: '18px',
+              height: '18px',
               color: '#9ca3af'
             }} />
             <input
@@ -859,15 +847,15 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
                 width: '100%',
-                padding: '0.875rem 1rem 0.875rem 3rem',
-                border: '2px solid #e5e7eb',
-                borderRadius: '0.75rem',
-                fontSize: '0.938rem',
+                padding: '0.75rem 1rem 0.75rem 2.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.5rem',
+                fontSize: '0.875rem',
                 transition: 'all 0.2s',
                 outline: 'none'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              onFocus={(e) => e.target.style.borderColor = '#555'}
+              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
             />
             {searchTerm && (
               <button
@@ -881,31 +869,31 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   cursor: 'pointer'
                 }}
               >
-                <X style={{ width: '16px', height: '16px', color: '#6b7280' }} />
+                <X style={{ width: '14px', height: '14px', color: '#6b7280' }} />
               </button>
             )}
           </div>
 
           {/* Filtre par classe */}
-          <div style={{ position: 'relative', minWidth: '200px' }}>
+          <div style={{ position: 'relative', minWidth: '180px' }}>
             <select
               value={selectedClass}
               onChange={(e) => setSelectedClass(e.target.value)}
               style={{
                 width: '100%',
-                padding: '0.875rem 2.5rem 0.875rem 1rem',
-                border: '2px solid #e5e7eb',
-                borderRadius: '0.75rem',
-                fontSize: '0.938rem',
+                padding: '0.75rem 2.25rem 0.75rem 1rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.5rem',
+                fontSize: '0.875rem',
                 backgroundColor: 'white',
                 cursor: 'pointer',
                 appearance: 'none',
                 outline: 'none'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              onFocus={(e) => e.target.style.borderColor = '#555'}
+              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
             >
-              <option value="">📚 Toutes les classes</option>
+              <option value="">Toutes les classes</option>
               {classes.map(classe => (
                 <option key={classe} value={classe}>{classe}</option>
               ))}
@@ -916,7 +904,8 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
               top: '50%',
               transform: 'translateY(-50%)',
               pointerEvents: 'none',
-              color: '#6b7280'
+              color: '#6b7280',
+              fontSize: '0.75rem'
             }}>▼</div>
           </div>
         </div>
@@ -926,13 +915,13 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
           <div style={{
             marginTop: '1rem',
             padding: '0.75rem 1rem',
-            backgroundColor: '#f0f9ff',
-            borderRadius: '0.5rem',
+            backgroundColor: '#f5f5f5',
+            borderRadius: '0.375rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between'
           }}>
-            <span style={{ fontSize: '0.875rem', color: '#0369a1' }}>
+            <span style={{ fontSize: '0.875rem', color: '#555' }}>
               <strong>{filteredStudents.length}</strong> étudiant(s) trouvé(s)
             </span>
             <button
@@ -944,9 +933,9 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                 padding: '0.375rem 0.75rem',
                 border: 'none',
                 borderRadius: '0.375rem',
-                backgroundColor: '#0284c7',
+                backgroundColor: '#555',
                 color: 'white',
-                fontSize: '0.813rem',
+                fontSize: '0.75rem',
                 cursor: 'pointer',
                 fontWeight: '500'
               }}
@@ -981,52 +970,102 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
               filteredStudents.map(student => (
                 <tr key={student.id} className="table-row">
                   <td className="table-cell">
-                    <span className="badge badge-primary">
+                    <span style={{
+                      padding: '0.25rem 0.75rem',
+                      backgroundColor: '#f5f5f5',
+                      color: '#333',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.75rem',
+                      fontWeight: '500',
+                      border: '1px solid #e5e7eb'
+                    }}>
                       {student.matricule}
                     </span>
                   </td>
                   <td className="table-cell">
-                    <div className="table-cell-primary">
+                    <div style={{ fontWeight: '500', color: '#333' }}>
                       {student.prenom} {student.nom}
                     </div>
                     {student.telephone && (
-                      <div className="table-cell-secondary">{student.telephone}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.25rem' }}>{student.telephone}</div>
                     )}
                   </td>
                   <td className="table-cell">
-                    <span className="badge badge-accent">
+                    <span style={{
+                      padding: '0.25rem 0.75rem',
+                      backgroundColor: '#f8f8f8',
+                      color: '#333',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.75rem',
+                      fontWeight: '500',
+                      border: '1px solid #e5e7eb'
+                    }}>
                       {student.classe}
                     </span>
                   </td>
                   <td className="table-cell text-center">
                     {student.genre && (
-                      <span className={`badge ${
-                        student.genre === 'M' ? 'badge-male' : 'badge-female'
-                      }`}>
+                      <span style={{
+                        padding: '0.25rem 0.5rem',
+                        backgroundColor: student.genre === 'M' ? '#f0f0f0' : '#f5f5f5',
+                        color: '#333',
+                        borderRadius: '0.375rem',
+                        fontSize: '0.75rem',
+                        fontWeight: '500',
+                        border: `1px solid ${student.genre === 'M' ? '#d1d5db' : '#e5e7eb'}`
+                      }}>
                         {student.genre === 'M' ? 'M' : 'F'}
                       </span>
                     )}
                   </td>
                   <td className="table-cell text-center">
-                    <span className="badge badge-success">
+                    <span style={{
+                      padding: '0.25rem 0.75rem',
+                      backgroundColor: '#f0f9f0',
+                      color: '#166534',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.75rem',
+                      fontWeight: '500',
+                      border: '1px solid #bbf7d0'
+                    }}>
                       Inscrit
                     </span>
                   </td>
                   <td className="table-cell text-center">
-                    <div className="action-buttons">
+                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                       <button 
-                        className="btn-icon btn-edit"
+                        style={{
+                          padding: '0.5rem',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '0.375rem',
+                          backgroundColor: 'white',
+                          cursor: 'pointer',
+                          color: '#555',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
                         title="Modifier"
                         onClick={() => handleEdit(student)}
                       >
-                        <Edit className="icon" />
+                        <Edit style={{ width: '14px', height: '14px' }} />
                       </button>
                       <button 
-                        className="btn-icon btn-delete"
+                        style={{
+                          padding: '0.5rem',
+                          border: '1px solid #fecaca',
+                          borderRadius: '0.375rem',
+                          backgroundColor: 'white',
+                          cursor: 'pointer',
+                          color: '#dc2626',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
                         title="Supprimer"
                         onClick={() => onDeleteStudent(student.id)}
                       >
-                        <Trash2 className="icon" />
+                        <Trash2 style={{ width: '14px', height: '14px' }} />
                       </button>
                     </div>
                   </td>
@@ -1054,26 +1093,25 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
         }}>
           <div style={{
             backgroundColor: 'white',
-            borderRadius: '0.75rem',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            borderRadius: '0.5rem',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
             width: '100%',
-            maxWidth: '700px',
+            maxWidth: '600px',
             maxHeight: '90vh',
             overflow: 'hidden'
           }}>
             {/* Header */}
             <div style={{
-              padding: '1.5rem',
+              padding: '1.25rem',
               borderBottom: '1px solid #e5e7eb',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white'
+              backgroundColor: '#fafafa'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <UserPlus style={{ width: '28px', height: '28px' }} />
-                <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600' }}>
+                <UserPlus style={{ width: '20px', height: '20px', color: '#555' }} />
+                <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '600', color: '#333' }}>
                   Inscrire un Nouvel Étudiant
                 </h2>
               </div>
@@ -1090,36 +1128,31 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                 style={{
                   padding: '0.5rem',
                   border: 'none',
-                  borderRadius: '0.375rem',
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  borderRadius: '0.25rem',
+                  backgroundColor: 'transparent',
                   cursor: saving ? 'not-allowed' : 'pointer'
                 }}
               >
-                <X style={{ width: '20px', height: '20px', color: 'white' }} />
+                <X style={{ width: '18px', height: '18px', color: '#666' }} />
               </button>
             </div>
 
             {/* Contenu scrollable */}
             <div style={{ 
-              padding: '1.5rem',
-              maxHeight: 'calc(90vh - 140px)',
+              padding: '1.25rem',
+              maxHeight: 'calc(90vh - 120px)',
               overflowY: 'auto'
             }}>
               <form onSubmit={handleSubmit} id="addStudentForm">
-                <div style={{ display: 'grid', gap: '1.5rem' }}>
+                <div style={{ display: 'grid', gap: '1.25rem' }}>
                   
                   {/* Matricule */}
-                  <div style={{
-                    padding: '1rem',
-                    backgroundColor: '#fef3c7',
-                    borderRadius: '0.5rem',
-                    border: '1px solid #fde047'
-                  }}>
+                  <div>
                     <label style={{
                       display: 'block',
                       fontSize: '0.875rem',
                       fontWeight: '500',
-                      color: '#92400e',
+                      color: '#555',
                       marginBottom: '0.5rem'
                     }}>
                       Matricule (optionnel)
@@ -1132,31 +1165,28 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                       placeholder="Auto-généré si laissé vide"
                       style={{
                         width: '100%',
-                        padding: '0.75rem',
-                        border: '1px solid #fbbf24',
+                        padding: '0.625rem',
+                        border: '1px solid #d1d5db',
                         borderRadius: '0.375rem',
                         fontSize: '0.875rem'
                       }}
                     />
                     {!newStudent.matricule && (
-                      <small style={{ color: '#92400e', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
-                        💡 Matricule qui sera généré: <strong>{generateMatricule()}</strong>
+                      <small style={{ color: '#666', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
+                        Matricule qui sera généré: <strong>{generateMatricule()}</strong>
                       </small>
                     )}
                   </div>
 
                   {/* Informations personnelles */}
-                  <div style={{
-                    padding: '1rem',
-                    backgroundColor: '#f8fafc',
-                    borderRadius: '0.5rem',
-                    border: '1px solid #e2e8f0'
-                  }}>
+                  <div>
                     <h3 style={{
                       margin: '0 0 1rem 0',
-                      fontSize: '1.125rem',
-                      fontWeight: '500',
-                      color: '#374151'
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      color: '#333',
+                      paddingBottom: '0.5rem',
+                      borderBottom: '1px solid #e5e7eb'
                     }}>
                       Informations personnelles
                     </h3>
@@ -1167,7 +1197,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                           display: 'block',
                           fontSize: '0.875rem',
                           fontWeight: '500',
-                          color: '#374151',
+                          color: '#555',
                           marginBottom: '0.5rem'
                         }}>
                           Nom *
@@ -1183,14 +1213,14 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                           placeholder="Ex: Rakoto"
                           style={{
                             width: '100%',
-                            padding: '0.75rem',
-                            border: `2px solid ${errors.nom ? '#ef4444' : '#d1d5db'}`,
+                            padding: '0.625rem',
+                            border: `1px solid ${errors.nom ? '#dc2626' : '#d1d5db'}`,
                             borderRadius: '0.375rem',
                             fontSize: '0.875rem'
                           }}
                         />
                         {errors.nom && (
-                          <span style={{ color: '#ef4444', fontSize: '0.75rem', display: 'block', marginTop: '0.25rem' }}>
+                          <span style={{ color: '#dc2626', fontSize: '0.75rem', display: 'block', marginTop: '0.25rem' }}>
                             {errors.nom}
                           </span>
                         )}
@@ -1201,7 +1231,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                           display: 'block',
                           fontSize: '0.875rem',
                           fontWeight: '500',
-                          color: '#374151',
+                          color: '#555',
                           marginBottom: '0.5rem'
                         }}>
                           Prénom *
@@ -1217,14 +1247,14 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                           placeholder="Ex: Jean"
                           style={{
                             width: '100%',
-                            padding: '0.75rem',
-                            border: `2px solid ${errors.prenom ? '#ef4444' : '#d1d5db'}`,
+                            padding: '0.625rem',
+                            border: `1px solid ${errors.prenom ? '#dc2626' : '#d1d5db'}`,
                             borderRadius: '0.375rem',
                             fontSize: '0.875rem'
                           }}
                         />
                         {errors.prenom && (
-                          <span style={{ color: '#ef4444', fontSize: '0.75rem', display: 'block', marginTop: '0.25rem' }}>
+                          <span style={{ color: '#dc2626', fontSize: '0.75rem', display: 'block', marginTop: '0.25rem' }}>
                             {errors.prenom}
                           </span>
                         )}
@@ -1235,7 +1265,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                           display: 'block',
                           fontSize: '0.875rem',
                           fontWeight: '500',
-                          color: '#374151',
+                          color: '#555',
                           marginBottom: '0.5rem'
                         }}>
                           Genre
@@ -1246,8 +1276,8 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                           disabled={saving}
                           style={{
                             width: '100%',
-                            padding: '0.75rem',
-                            border: '2px solid #d1d5db',
+                            padding: '0.625rem',
+                            border: '1px solid #d1d5db',
                             borderRadius: '0.375rem',
                             fontSize: '0.875rem',
                             cursor: 'pointer'
@@ -1266,10 +1296,10 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                           gap: '0.5rem',
                           fontSize: '0.875rem',
                           fontWeight: '500',
-                          color: '#374151',
+                          color: '#555',
                           marginBottom: '0.5rem'
                         }}>
-                          <Calendar style={{ width: '16px', height: '16px' }} />
+                          <Calendar style={{ width: '14px', height: '14px' }} />
                           Date de naissance
                         </label>
                         <input
@@ -1279,8 +1309,8 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                           disabled={saving}
                           style={{
                             width: '100%',
-                            padding: '0.75rem',
-                            border: '2px solid #d1d5db',
+                            padding: '0.625rem',
+                            border: '1px solid #d1d5db',
                             borderRadius: '0.375rem',
                             fontSize: '0.875rem'
                           }}
@@ -1290,17 +1320,14 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   </div>
 
                   {/* Informations scolaires */}
-                  <div style={{
-                    padding: '1rem',
-                    backgroundColor: '#f0f9ff',
-                    borderRadius: '0.5rem',
-                    border: '1px solid #bae6fd'
-                  }}>
+                  <div>
                     <h3 style={{
                       margin: '0 0 1rem 0',
-                      fontSize: '1.125rem',
-                      fontWeight: '500',
-                      color: '#374151'
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      color: '#333',
+                      paddingBottom: '0.5rem',
+                      borderBottom: '1px solid #e5e7eb'
                     }}>
                       Informations scolaires
                     </h3>
@@ -1310,7 +1337,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                         display: 'block',
                         fontSize: '0.875rem',
                         fontWeight: '500',
-                        color: '#374151',
+                        color: '#555',
                         marginBottom: '0.5rem'
                       }}>
                         Classe *
@@ -1326,14 +1353,14 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                         placeholder="Ex: Terminal A, 1ère S, etc."
                         style={{
                           width: '100%',
-                          padding: '0.75rem',
-                          border: `2px solid ${errors.classe ? '#ef4444' : '#d1d5db'}`,
+                          padding: '0.625rem',
+                          border: `1px solid ${errors.classe ? '#dc2626' : '#d1d5db'}`,
                           borderRadius: '0.375rem',
                           fontSize: '0.875rem'
                         }}
                       />
                       {errors.classe && (
-                        <span style={{ color: '#ef4444', fontSize: '0.75rem', display: 'block', marginTop: '0.25rem' }}>
+                        <span style={{ color: '#dc2626', fontSize: '0.75rem', display: 'block', marginTop: '0.25rem' }}>
                           {errors.classe}
                         </span>
                       )}
@@ -1341,17 +1368,14 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   </div>
 
                   {/* Contact */}
-                  <div style={{
-                    padding: '1rem',
-                    backgroundColor: '#f0fdf4',
-                    borderRadius: '0.5rem',
-                    border: '1px solid #bbf7d0'
-                  }}>
+                  <div>
                     <h3 style={{
                       margin: '0 0 1rem 0',
-                      fontSize: '1.125rem',
-                      fontWeight: '500',
-                      color: '#374151'
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      color: '#333',
+                      paddingBottom: '0.5rem',
+                      borderBottom: '1px solid #e5e7eb'
                     }}>
                       Informations de contact
                     </h3>
@@ -1364,10 +1388,10 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                           gap: '0.5rem',
                           fontSize: '0.875rem',
                           fontWeight: '500',
-                          color: '#374151',
+                          color: '#555',
                           marginBottom: '0.5rem'
                         }}>
-                          <Phone style={{ width: '16px', height: '16px' }} />
+                          <Phone style={{ width: '14px', height: '14px' }} />
                           Téléphone
                         </label>
                         <input
@@ -1378,8 +1402,8 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                           placeholder="Ex: +261 34 12 345 67"
                           style={{
                             width: '100%',
-                            padding: '0.75rem',
-                            border: '2px solid #d1d5db',
+                            padding: '0.625rem',
+                            border: '1px solid #d1d5db',
                             borderRadius: '0.375rem',
                             fontSize: '0.875rem'
                           }}
@@ -1393,10 +1417,10 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                           gap: '0.5rem',
                           fontSize: '0.875rem',
                           fontWeight: '500',
-                          color: '#374151',
+                          color: '#555',
                           marginBottom: '0.5rem'
                         }}>
-                          <MapPin style={{ width: '16px', height: '16px' }} />
+                          <MapPin style={{ width: '14px', height: '14px' }} />
                           Adresse
                         </label>
                         <textarea
@@ -1407,8 +1431,8 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                           placeholder="Adresse complète..."
                           style={{
                             width: '100%',
-                            padding: '0.75rem',
-                            border: '2px solid #d1d5db',
+                            padding: '0.625rem',
+                            border: '1px solid #d1d5db',
                             borderRadius: '0.375rem',
                             fontSize: '0.875rem',
                             resize: 'vertical'
@@ -1423,9 +1447,9 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
 
             {/* Footer avec boutons */}
             <div style={{
-              padding: '1.5rem',
+              padding: '1.25rem',
               borderTop: '1px solid #e5e7eb',
-              backgroundColor: '#f8fafc',
+              backgroundColor: '#fafafa',
               display: 'flex',
               justifyContent: 'flex-end',
               gap: '0.75rem'
@@ -1442,11 +1466,11 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                 }}
                 disabled={saving}
                 style={{
-                  padding: '0.75rem 1.5rem',
+                  padding: '0.625rem 1.25rem',
                   border: '1px solid #d1d5db',
                   borderRadius: '0.375rem',
                   backgroundColor: 'white',
-                  color: '#374151',
+                  color: '#555',
                   fontSize: '0.875rem',
                   fontWeight: '500',
                   cursor: saving ? 'not-allowed' : 'pointer',
@@ -1461,10 +1485,10 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                 form="addStudentForm"
                 disabled={saving}
                 style={{
-                  padding: '0.75rem 1.5rem',
+                  padding: '0.625rem 1.25rem',
                   border: 'none',
                   borderRadius: '0.375rem',
-                  backgroundColor: saving ? '#9ca3af' : '#10b981',
+                  backgroundColor: saving ? '#9ca3af' : '#555',
                   color: 'white',
                   fontSize: '0.875rem',
                   fontWeight: '500',
@@ -1474,7 +1498,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   gap: '0.5rem'
                 }}
               >
-                <Save style={{ width: '16px', height: '16px' }} />
+                <Save style={{ width: '14px', height: '14px' }} />
                 {saving ? 'Inscription...' : 'Inscrire l\'étudiant'}
               </button>
             </div>
@@ -1489,6 +1513,105 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
         onClose={handleCloseEditModal}
         onSave={handleSaveEdit}
       />
+
+      <style jsx>{`
+        .card {
+          background: white;
+          border-radius: 0.5rem;
+          border: 1px solid #e5e7eb;
+          overflow: hidden;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+          padding: 1.5rem;
+          border-bottom: 1px solid #e5e7eb;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: #fafafa;
+        }
+
+        .card-title {
+          margin: 0;
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: #333;
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .icon {
+          width: 20px;
+          height: 20px;
+        }
+
+        .btn {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1.25rem;
+          border: none;
+          border-radius: 0.375rem;
+          font-size: 0.875rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .btn-primary {
+          background: #555;
+          color: white;
+        }
+
+        .btn-primary:hover {
+          background: #444;
+        }
+
+        .table-container {
+          overflow-x: auto;
+        }
+
+        .data-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 0.875rem;
+        }
+
+        .table-header {
+          background: #f8f8f8;
+          padding: 1rem;
+          text-align: left;
+          font-weight: 600;
+          color: #333;
+          border-bottom: 1px solid #e5e7eb;
+        }
+
+        .text-center {
+          text-align: center;
+        }
+
+        .table-row {
+          border-bottom: 1px solid #f0f0f0;
+        }
+
+        .table-row:hover {
+          background: #fafafa;
+        }
+
+        .table-cell {
+          padding: 1rem;
+          color: #555;
+        }
+
+        .table-empty {
+          padding: 3rem 1rem;
+          text-align: center;
+          color: #666;
+          font-style: italic;
+        }
+      `}</style>
     </div>
   );
 };
