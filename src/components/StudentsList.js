@@ -1,1955 +1,1456 @@
-// components/StudentsList.js
-import React, { useState } from 'react';
-import { Users, Plus, Search, Edit, Trash2, Save, X, UserPlus, User, Calendar, Phone, MapPin, AlertTriangle, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  AlertCircle,
+  RefreshCw,
+  Users,
+  GraduationCap,
+  Home,
+  ArrowLeft,
+  BookOpen,
+  ChevronRight,
+  Download,
+  FileText,
+  Calendar
+} from 'lucide-react';
 
-// Modal de confirmation de suppression
-const DeleteConfirmationModal = ({ student, isOpen, onClose, onConfirm, loading }) => {
-  if (!isOpen) return null;
+// Service API intégré
+const API_BASE_URL = 'https://scolaire.onrender.com/api';
 
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 2000,
-      padding: '1rem'
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '0.75rem',
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-        width: '100%',
-        maxWidth: '480px',
-        overflow: 'hidden'
-      }}>
-        {/* Header */}
-        <div style={{
-          padding: '1.5rem',
-          borderBottom: '1px solid #e5e7eb',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          backgroundColor: '#fef2f2'
-        }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            backgroundColor: '#fee2e2',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <AlertTriangle style={{ width: '20px', height: '20px', color: '#dc2626' }} />
-          </div>
-          <div>
-            <h3 style={{ 
-              margin: 0, 
-              fontSize: '1.25rem', 
-              fontWeight: '600', 
-              color: '#1f2937' 
-            }}>
-              Confirmer la suppression
-            </h3>
-            <p style={{ 
-              margin: '0.25rem 0 0 0', 
-              fontSize: '0.875rem', 
-              color: '#6b7280' 
-            }}>
-              Cette action est irréversible
-            </p>
-          </div>
-        </div>
+const apiService = {
+  async request(endpoint, options = {}) {
+    const url = `${API_BASE_URL}${endpoint}`;
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      ...options,
+    };
 
-        {/* Contenu */}
-        <div style={{ padding: '1.5rem' }}>
-          <div style={{ 
-            backgroundColor: '#f8f9fa', 
-            padding: '1rem', 
-            borderRadius: '0.5rem',
-            border: '1px solid #e9ecef'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <User style={{ width: '16px', height: '16px', color: '#6b7280' }} />
-              <span style={{ fontWeight: '600', color: '#374151' }}>Étudiant à supprimer :</span>
-            </div>
-            <div style={{ paddingLeft: '1.75rem' }}>
-              <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: '#374151' }}>
-                <strong>Nom :</strong> {student?.prenom} {student?.nom}
-              </p>
-              <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: '#374151' }}>
-                <strong>Matricule :</strong> {student?.matricule}
-              </p>
-              <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: '#374151' }}>
-                <strong>Classe :</strong> {student?.classe}
-              </p>
-            </div>
-          </div>
-
-          <div style={{ 
-            marginTop: '1rem',
-            padding: '1rem',
-            backgroundColor: '#fffbeb',
-            border: '1px solid #fed7aa',
-            borderRadius: '0.5rem'
-          }}>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <AlertTriangle style={{ width: '16px', height: '16px', color: '#d97706', flexShrink: 0 }} />
-              <div>
-                <p style={{ 
-                  margin: 0, 
-                  fontSize: '0.875rem', 
-                  color: '#92400e',
-                  fontWeight: '500'
-                }}>
-                  Attention
-                </p>
-                <p style={{ 
-                  margin: '0.25rem 0 0 0', 
-                  fontSize: '0.75rem', 
-                  color: '#92400e',
-                  lineHeight: '1.4'
-                }}>
-                  La suppression de cet étudiant entraînera également la perte de toutes ses notes et données associées. Cette action ne peut pas être annulée.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div style={{
-          padding: '1.25rem 1.5rem',
-          borderTop: '1px solid #e5e7eb',
-          backgroundColor: '#fafafa',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          gap: '0.75rem'
-        }}>
-          <button
-            onClick={onClose}
-            disabled={loading}
-            style={{
-              padding: '0.625rem 1.5rem',
-              border: '1px solid #d1d5db',
-              borderRadius: '0.5rem',
-              backgroundColor: 'white',
-              color: '#374151',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s',
-              opacity: loading ? 0.6 : 1
-            }}
-            onMouseOver={(e) => !loading && (e.target.style.backgroundColor = '#f9fafb')}
-            onMouseOut={(e) => !loading && (e.target.style.backgroundColor = 'white')}
-          >
-            Annuler
-          </button>
-          
-          <button
-            onClick={() => onConfirm(student.id)}
-            disabled={loading}
-            style={{
-              padding: '0.625rem 1.5rem',
-              border: 'none',
-              borderRadius: '0.5rem',
-              backgroundColor: loading ? '#9ca3af' : '#dc2626',
-              color: 'white',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s',
-              opacity: loading ? 0.6 : 1
-            }}
-            onMouseOver={(e) => !loading && (e.target.style.backgroundColor = '#b91c1c')}
-            onMouseOut={(e) => !loading && (e.target.style.backgroundColor = '#dc2626')}
-          >
-            <Trash2 style={{ width: '14px', height: '14px' }} />
-            {loading ? 'Suppression...' : 'Supprimer définitivement'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Modal de succès
-const SuccessModal = ({ isOpen, onClose, message }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 2000,
-      padding: '1rem'
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '0.75rem',
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-        width: '100%',
-        maxWidth: '400px',
-        overflow: 'hidden',
-        textAlign: 'center'
-      }}>
-        <div style={{ padding: '2rem 1.5rem' }}>
-          <div style={{
-            width: '64px',
-            height: '64px',
-            borderRadius: '50%',
-            backgroundColor: '#d1fae5',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 1rem'
-          }}>
-            <CheckCircle style={{ width: '32px', height: '32px', color: '#10b981' }} />
-          </div>
-          
-          <h3 style={{ 
-            margin: '0 0 0.5rem 0', 
-            fontSize: '1.25rem', 
-            fontWeight: '600', 
-            color: '#1f2937' 
-          }}>
-            Succès
-          </h3>
-          
-          <p style={{ 
-            margin: 0, 
-            fontSize: '0.875rem', 
-            color: '#6b7280',
-            lineHeight: '1.5'
-          }}>
-            {message}
-          </p>
-        </div>
-
-        <div style={{
-          padding: '1rem 1.5rem',
-          borderTop: '1px solid #e5e7eb',
-          display: 'flex',
-          justifyContent: 'center'
-        }}>
-          <button
-            onClick={onClose}
-            style={{
-              padding: '0.625rem 1.5rem',
-              border: 'none',
-              borderRadius: '0.5rem',
-              backgroundColor: '#10b981',
-              color: 'white',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#059669'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#10b981'}
-          >
-            Fermer
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Modal d'édition d'étudiant
-const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
-  const [formData, setFormData] = useState({
-    matricule: '',
-    nom: '',
-    prenom: '',
-    classe: '',
-    dateNaissance: '',
-    genre: 'M',
-    telephone: '',
-    adresse: '',
-    notes: {}
-  });
-  const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState({});
-
-  React.useEffect(() => {
-    if (student && isOpen) {
-      console.log('Chargement données étudiant pour édition:', student);
-      setFormData({
-        matricule: student.matricule || '',
-        nom: student.nom || '',
-        prenom: student.prenom || '',
-        classe: student.classe || '',
-        dateNaissance: student.dateNaissance || '',
-        genre: student.genre || 'M',
-        telephone: student.telephone || '',
-        adresse: student.adresse || '',
-        notes: student.notes || {}
-      });
-      setErrors({});
-    }
-  }, [student, isOpen]);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: null
-      }));
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.nom.trim()) {
-      newErrors.nom = 'Le nom est requis';
-    }
-    if (!formData.prenom.trim()) {
-      newErrors.prenom = 'Le prénom est requis';
-    }
-    if (!formData.classe.trim()) {
-      newErrors.classe = 'La classe est requise';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    setSaving(true);
-    
     try {
-      console.log('Soumission modification étudiant:', formData);
-      const success = await onSave(student.id, formData);
-      
-      if (success) {
-        console.log('Modification réussie');
-        onClose();
+      const response = await fetch(url, config);
+      if (!response.ok) {
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (parseError) {}
+        throw new Error(errorMessage);
       }
+      const data = await response.json();
+      return data;
     } catch (error) {
-      console.error('Erreur lors de la modification:', error);
-    } finally {
-      setSaving(false);
+      console.error(`API Error [${config.method || 'GET'} ${endpoint}]:`, error);
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        throw new Error('Erreur de connexion à l\'API');
+      }
+      throw error;
     }
-  };
+  },
 
-  if (!isOpen) return null;
+  async getAllStudents() {
+    return await this.request('/students');
+  },
 
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: '1rem'
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '0.5rem',
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-        width: '100%',
-        maxWidth: '600px',
-        maxHeight: '90vh',
-        overflow: 'hidden'
-      }}>
-        {/* Header */}
-        <div style={{
-          padding: '1.25rem',
-          borderBottom: '1px solid #e5e7eb',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          backgroundColor: '#fafafa'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <User style={{ width: '20px', height: '20px', color: '#555' }} />
-            <h2 style={{ 
-              margin: 0, 
-              fontSize: '1.25rem', 
-              fontWeight: '600', 
-              color: '#333' 
-            }}>
-              Modifier l'étudiant
-            </h2>
-          </div>
-          <button
-            onClick={onClose}
-            disabled={saving}
-            style={{
-              padding: '0.5rem',
-              border: 'none',
-              borderRadius: '0.25rem',
-              backgroundColor: 'transparent',
-              cursor: saving ? 'not-allowed' : 'pointer',
-              opacity: saving ? 0.5 : 1
-            }}
-          >
-            <X style={{ width: '18px', height: '18px', color: '#666' }} />
-          </button>
-        </div>
-
-        {/* Contenu */}
-        <div style={{ 
-          padding: '1.25rem',
-          maxHeight: 'calc(90vh - 120px)',
-          overflowY: 'auto'
-        }}>
-          <form onSubmit={handleSubmit}>
-            <div style={{ display: 'grid', gap: '1.25rem' }}>
-              
-              {/* Informations de base */}
-              <div>
-                <h3 style={{
-                  margin: '0 0 1rem 0',
-                  fontSize: '1rem',
-                  fontWeight: '600',
-                  color: '#333',
-                  paddingBottom: '0.5rem',
-                  borderBottom: '1px solid #e5e7eb'
-                }}>
-                  Informations personnelles
-                </h3>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#555',
-                      marginBottom: '0.5rem'
-                    }}>
-                      Matricule
-                    </label>
-                    <input
-                      type="text"
-                      name="matricule"
-                      value={formData.matricule}
-                      onChange={handleInputChange}
-                      disabled={saving}
-                      style={{
-                        width: '100%',
-                        padding: '0.625rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '0.375rem',
-                        fontSize: '0.875rem',
-                        backgroundColor: '#f9f9f9',
-                        cursor: 'not-allowed'
-                      }}
-                      readOnly
-                    />
-                    <small style={{ color: '#777', fontSize: '0.75rem' }}>
-                      Le matricule ne peut pas être modifié
-                    </small>
-                  </div>
-
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#555',
-                      marginBottom: '0.5rem'
-                    }}>
-                      Genre
-                    </label>
-                    <select
-                      name="genre"
-                      value={formData.genre}
-                      onChange={handleInputChange}
-                      disabled={saving}
-                      style={{
-                        width: '100%',
-                        padding: '0.625rem',
-                        border: `1px solid ${errors.genre ? '#dc2626' : '#d1d5db'}`,
-                        borderRadius: '0.375rem',
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      <option value="M">Masculin</option>
-                      <option value="F">Féminin</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#555',
-                      marginBottom: '0.5rem'
-                    }}>
-                      Nom *
-                    </label>
-                    <input
-                      type="text"
-                      name="nom"
-                      value={formData.nom}
-                      onChange={handleInputChange}
-                      disabled={saving}
-                      style={{
-                        width: '100%',
-                        padding: '0.625rem',
-                        border: `1px solid ${errors.nom ? '#dc2626' : '#d1d5db'}`,
-                        borderRadius: '0.375rem',
-                        fontSize: '0.875rem'
-                      }}
-                    />
-                    {errors.nom && (
-                      <span style={{ color: '#dc2626', fontSize: '0.75rem' }}>
-                        {errors.nom}
-                      </span>
-                    )}
-                  </div>
-
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#555',
-                      marginBottom: '0.5rem'
-                    }}>
-                      Prénom *
-                    </label>
-                    <input
-                      type="text"
-                      name="prenom"
-                      value={formData.prenom}
-                      onChange={handleInputChange}
-                      disabled={saving}
-                      style={{
-                        width: '100%',
-                        padding: '0.625rem',
-                        border: `1px solid ${errors.prenom ? '#dc2626' : '#d1d5db'}`,
-                        borderRadius: '0.375rem',
-                        fontSize: '0.875rem'
-                      }}
-                    />
-                    {errors.prenom && (
-                      <span style={{ color: '#dc2626', fontSize: '0.75rem' }}>
-                        {errors.prenom}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Informations scolaires */}
-              <div>
-                <h3 style={{
-                  margin: '0 0 1rem 0',
-                  fontSize: '1rem',
-                  fontWeight: '600',
-                  color: '#333',
-                  paddingBottom: '0.5rem',
-                  borderBottom: '1px solid #e5e7eb'
-                }}>
-                  Informations scolaires
-                </h3>
-                
-                <div>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: '500',
-                    color: '#555',
-                    marginBottom: '0.5rem'
-                  }}>
-                    Classe *
-                  </label>
-                  <input
-                    type="text"
-                    name="classe"
-                    value={formData.classe}
-                    onChange={handleInputChange}
-                    disabled={saving}
-                    placeholder="ex: Terminal A, 1ère S, etc."
-                    style={{
-                      width: '100%',
-                      padding: '0.625rem',
-                      border: `1px solid ${errors.classe ? '#dc2626' : '#d1d5db'}`,
-                      borderRadius: '0.375rem',
-                      fontSize: '0.875rem'
-                    }}
-                  />
-                  {errors.classe && (
-                    <span style={{ color: '#dc2626', fontSize: '0.75rem' }}>
-                      {errors.classe}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Informations personnelles complémentaires */}
-              <div>
-                <h3 style={{
-                  margin: '0 0 1rem 0',
-                  fontSize: '1rem',
-                  fontWeight: '600',
-                  color: '#333',
-                  paddingBottom: '0.5rem',
-                  borderBottom: '1px solid #e5e7eb'
-                }}>
-                  Informations complémentaires
-                </h3>
-                
-                <div style={{ display: 'grid', gap: '1rem' }}>
-                  <div>
-                    <label style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#555',
-                      marginBottom: '0.5rem'
-                    }}>
-                      <Calendar style={{ width: '14px', height: '14px' }} />
-                      Date de naissance
-                    </label>
-                    <input
-                      type="date"
-                      name="dateNaissance"
-                      value={formData.dateNaissance}
-                      onChange={handleInputChange}
-                      disabled={saving}
-                      style={{
-                        width: '100%',
-                        padding: '0.625rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '0.375rem',
-                        fontSize: '0.875rem'
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#555',
-                      marginBottom: '0.5rem'
-                    }}>
-                      <Phone style={{ width: '14px', height: '14px' }} />
-                      Téléphone
-                    </label>
-                    <input
-                      type="tel"
-                      name="telephone"
-                      value={formData.telephone}
-                      onChange={handleInputChange}
-                      disabled={saving}
-                      placeholder="ex: +261 34 12 345 67"
-                      style={{
-                        width: '100%',
-                        padding: '0.625rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '0.375rem',
-                        fontSize: '0.875rem'
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#555',
-                      marginBottom: '0.5rem'
-                    }}>
-                      <MapPin style={{ width: '14px', height: '14px' }} />
-                      Adresse
-                    </label>
-                    <textarea
-                      name="adresse"
-                      value={formData.adresse}
-                      onChange={handleInputChange}
-                      disabled={saving}
-                      rows="3"
-                      placeholder="Adresse complète..."
-                      style={{
-                        width: '100%',
-                        padding: '0.625rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '0.375rem',
-                        fontSize: '0.875rem',
-                        resize: 'vertical'
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
-
-        {/* Footer */}
-        <div style={{
-          padding: '1.25rem',
-          borderTop: '1px solid #e5e7eb',
-          backgroundColor: '#fafafa',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          gap: '0.75rem'
-        }}>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={saving}
-            style={{
-              padding: '0.625rem 1.25rem',
-              border: '1px solid #d1d5db',
-              borderRadius: '0.375rem',
-              backgroundColor: 'white',
-              color: '#555',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              cursor: saving ? 'not-allowed' : 'pointer',
-              opacity: saving ? 0.5 : 1
-            }}
-          >
-            Annuler
-          </button>
-          
-          <button
-            type="submit"
-            onClick={handleSubmit}
-            disabled={saving}
-            style={{
-              padding: '0.625rem 1.25rem',
-              border: 'none',
-              borderRadius: '0.375rem',
-              backgroundColor: saving ? '#9ca3af' : '#555',
-              color: 'white',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              cursor: saving ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            <Save style={{ width: '14px', height: '14px' }} />
-            {saving ? 'Sauvegarde...' : 'Sauvegarder'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  async getAllResults() {
+    return await this.request('/results');
+  }
 };
 
-// Composant principal StudentsList
-const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, subjects }) => {
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedClass, setSelectedClass] = useState('');
-  const [editingStudent, setEditingStudent] = useState(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [newStudent, setNewStudent] = useState({
-    matricule: '',
-    nom: '',
-    prenom: '',
-    classe: '',
-    dateNaissance: '',
-    genre: '',
-    telephone: '',
-    adresse: ''
-  });
+const StudentResults = ({ currentTrimestre }) => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [classesList, setClassesList] = useState([]);
+  
+  // Navigation states
+  const [currentView, setCurrentView] = useState('classes');
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
-  // États pour la suppression
-  const [studentToDelete, setStudentToDelete] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-
-  const generateMatricule = () => {
-    const year = new Date().getFullYear();
-    const random = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
-    return `ETU${year}${random}`;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const groupStudentsByClass = (studentsMap, results) => {
+    const classesList = {};
     
-    // Validation
-    const newErrors = {};
-    if (!newStudent.nom.trim()) newErrors.nom = 'Le nom est requis';
-    if (!newStudent.prenom.trim()) newErrors.prenom = 'Le prénom est requis';
-    if (!newStudent.classe.trim()) newErrors.classe = 'La classe est requise';
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    setSaving(true);
-    
-    try {
-      const student = {
-        ...newStudent,
-        id: Date.now(),
-        matricule: newStudent.matricule || generateMatricule(),
-        notes: {}
-      };
-      
-      await onAddStudent(student);
-      setNewStudent({
-        matricule: '', nom: '', prenom: '', classe: '',
-        dateNaissance: '', genre: '', telephone: '', adresse: ''
+    Object.values(studentsMap)
+      .filter(student => {
+        // FILTRE CRITIQUE: Exclure les étudiants sans classe valide
+        return student.classe && 
+               student.classe.trim() !== '' && 
+               student.classe !== 'Non assigné' &&
+               student.classe !== 'Sans classe' &&
+               student.classe !== null;
+      })
+      .forEach(student => {
+        let totalScore = 0;
+        let totalCoefficients = 0;
+        let hasNotes = false;
+        
+        // Calcul des notes pour chaque matière
+        Object.values(student.subjects).forEach(subject => {
+          if (subject.scores && subject.scores.length > 0) {
+            hasNotes = true;
+            const avg = subject.scores.reduce((sum, score) => sum + score, 0) / subject.scores.length;
+            subject.average = avg;
+            subject.lastScore = subject.scores[subject.scores.length - 1];
+            
+            const noteOver20 = (avg / subject.maxPoints) * 20;
+            subject.noteOver20 = noteOver20;
+            
+            totalScore += noteOver20 * subject.coefficient;
+            totalCoefficients += subject.coefficient;
+          }
+        });
+        
+        student.averageScore = totalCoefficients > 0 ? totalScore / totalCoefficients : 0;
+        student.totalSubjects = Object.keys(student.subjects).length;
+        student.hasNotes = hasNotes;
+        
+        // Normaliser le nom de la classe
+        let className = student.classe.trim();
+        className = className.split(' ').map(word => {
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        }).join(' ');
+        
+        if (!classesList[className]) {
+          classesList[className] = {
+            name: className,
+            students: [],
+            totalStudents: 0,
+            averageScore: 0,
+            totalCorrections: 0,
+            studentsWithNotes: 0
+          };
+        }
+        
+        classesList[className].students.push(student);
+        classesList[className].totalStudents++;
+        classesList[className].totalCorrections += Object.values(student.subjects)
+          .reduce((sum, s) => sum + (s.corrections || 0), 0);
+        
+        if (hasNotes) {
+          classesList[className].studentsWithNotes++;
+        }
       });
-      setShowAddModal(false);
-      setErrors({});
+  
+    // Calculer les moyennes de classe uniquement pour les étudiants avec notes
+    Object.values(classesList).forEach(classe => {
+      const studentsWithNotes = classe.students.filter(s => s.hasNotes);
       
-      // Afficher le message de succès
-      setSuccessMessage(`L'étudiant ${student.prenom} ${student.nom} a été inscrit avec succès.`);
-      setShowSuccessModal(true);
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout:', error);
-    } finally {
-      setSaving(false);
-    }
+      if (studentsWithNotes.length === 0) {
+        classe.averageScore = 0;
+        return;
+      }
+      
+      const totalWeightedScore = studentsWithNotes.reduce((sum, student) => {
+        const studentWeight = Object.values(student.subjects)
+          .reduce((totalCoeff, subject) => totalCoeff + subject.coefficient, 0);
+        return sum + (student.averageScore * studentWeight);
+      }, 0);
+      
+      const totalWeights = studentsWithNotes.reduce((sum, student) => {
+        return sum + Object.values(student.subjects)
+          .reduce((totalCoeff, subject) => totalCoeff + subject.coefficient, 0);
+      }, 0);
+      
+      classe.averageScore = totalWeights > 0 ? totalWeightedScore / totalWeights : 0;
+      classe.students.sort((a, b) => a.nom.localeCompare(b.nom));
+    });
+
+    return classesList;
   };
 
-  const handleEdit = (student) => {
-    console.log('Ouverture du modal pour éditer:', student);
-    setEditingStudent(student);
-    setShowEditModal(true);
-  };
-
-  const handleSaveEdit = async (studentId, formData) => {
+  const loadAllData = useCallback(async (silent = false) => {
     try {
-      console.log('Sauvegarde des modifications:', studentId, formData);
-      await onEditStudent(studentId, formData);
-      setShowEditModal(false);
-      setEditingStudent(null);
+      if (!silent) setLoading(true);
+      else setRefreshing(true);
+
+      const [resultsData, studentsData] = await Promise.all([
+        apiService.getAllResults(),
+        apiService.getAllStudents()
+      ]);
       
-      // Afficher le message de succès
-      setSuccessMessage(`Les informations de l'étudiant ont été mises à jour avec succès.`);
-      setShowSuccessModal(true);
-      return true;
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
-      return false;
+      if (resultsData.success && studentsData.success) {
+        const students = studentsData.students || [];
+        const results = resultsData.results || [];
+        
+        console.log('=== DONNÉES CHARGÉES ===');
+        console.log('Étudiants:', students.length);
+        console.log('Résultats:', results.length);
+        
+        const studentsMap = {};
+        
+        // Créer la map des étudiants VALIDES seulement
+        students.forEach(student => {
+          const matricule = student.matricule || student.id;
+          const classe = student.classe || student.class;
+          
+          // FILTRE IMPORTANT: Ignorer les étudiants sans classe valide
+          if (!classe || classe === 'Non assigné' || classe === 'Sans classe' || classe.trim() === '') {
+            console.warn('Étudiant sans classe ignoré:', student);
+            return;
+          }
+          
+          studentsMap[matricule] = {
+            matricule,
+            nom: student.nom || student.name || matricule,
+            prenom: student.prenom || '',
+            classe: classe,
+            subjects: {}
+          };
+        });
+        
+        console.log('Étudiants valides après filtrage:', Object.keys(studentsMap).length);
+        
+        // Associer les résultats aux étudiants
+        results.forEach(result => {
+          const matricule = result.student_matricule;
+          
+          // Vérifier si l'étudiant existe et est valide
+          if (!studentsMap[matricule]) {
+            return; // Ignorer les résultats pour étudiants non valides
+          }
+          
+          const analysisResult = result.analysis_result || {};
+          const finalNote = parseFloat(analysisResult.final_note) || parseFloat(analysisResult.total_points) || parseFloat(result.score);
+          
+          const coefficient = parseFloat(result.subject_coefficient) || 1.0;
+          const maxPoints = parseFloat(result.max_points) || (20.0 * coefficient);
+          
+          if (isNaN(finalNote) || finalNote < 0 || finalNote > maxPoints) {
+            return;
+          }
+          
+          const subjectName = result.subject_name || 'Matière inconnue';
+          if (!studentsMap[matricule].subjects[subjectName]) {
+            studentsMap[matricule].subjects[subjectName] = {
+              name: subjectName,
+              scores: [],
+              corrections: 0,
+              coefficient: coefficient,
+              maxPoints: maxPoints
+            };
+          }
+          
+          studentsMap[matricule].subjects[subjectName].scores.push(finalNote);
+          studentsMap[matricule].subjects[subjectName].corrections++;
+        });
+
+        const classesList = groupStudentsByClass(studentsMap, results);
+        const classesArray = Object.values(classesList).sort((a, b) => a.name.localeCompare(b.name));
+        
+        console.log('Classes finales:', classesArray);
+        setClassesList(classesArray);
+        setError(null);
+      } else {
+        setError(resultsData.message || studentsData.message || 'Erreur de chargement');
+      }
+    } catch (err) {
+      const errorMsg = `Erreur de connexion: ${err.message}`;
+      setError(errorMsg);
+      console.error('Erreur:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
+  }, []);
+
+  useEffect(() => {
+    loadAllData();
+    const interval = setInterval(() => {
+      loadAllData(true);
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [loadAllData]);
+
+  const getScoreColor = (score) => {
+    if (isNaN(score)) return '#6b7280';
+    if (score >= 16) return '#10b981';
+    if (score >= 12) return '#f59e0b';
+    return '#ef4444';
   };
 
-  const handleCloseEditModal = () => {
-    setShowEditModal(false);
-    setEditingStudent(null);
+  const getScoreBgColor = (score) => {
+    if (isNaN(score)) return '#f3f4f6';
+    if (score >= 16) return '#ecfdf5';
+    if (score >= 12) return '#fffbeb';
+    return '#fef2f2';
   };
 
-  const handleDeleteClick = (student) => {
-    setStudentToDelete(student);
-    setShowDeleteModal(true);
+  const getAppreciation = (score) => {
+    if (isNaN(score) || score === 0) return '—';
+    if (score >= 16) return '🌟 Excellent';
+    if (score >= 14) return '👍 Très bien';
+    if (score >= 12) return '✓ Bien';
+    if (score >= 10) return '→ Assez bien';
+    return '⚠️ À améliorer';
   };
 
-  const handleConfirmDelete = async (studentId) => {
-    setDeleting(true);
+  const formatScore = (score, maxPoints = 20) => {
+    if (isNaN(score)) return '—';
+    const max = maxPoints || 20;
+    return `${score.toFixed(1)}/${max.toFixed(0)}`;
+  };
+
+  // ==================== EXPORT CSV ====================
+  const exportClassCSV = (classe) => {
+    const allSubjectsSet = new Set();
+    classe.students.forEach(student => {
+      Object.keys(student.subjects).forEach(subjectName => {
+        allSubjectsSet.add(subjectName);
+      });
+    });
+    const allSubjects = Array.from(allSubjectsSet).sort();
+
+    let csv = 'Matricule,Nom et Prénom';
+    allSubjects.forEach(subject => {
+      csv += `,${subject}`;
+    });
+    csv += ',Moyenne Générale\n';
+
+    classe.students.forEach(student => {
+      csv += `${student.matricule},"${student.nom} ${student.prenom}"`;
+      allSubjects.forEach(subjectName => {
+        const subject = student.subjects[subjectName];
+        if (subject && subject.average) {
+          csv += `,${subject.average.toFixed(1)}/${subject.maxPoints.toFixed(0)}`;
+        } else {
+          csv += ',—';
+        }
+      });
+      csv += `,${student.averageScore.toFixed(2)}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Bulletin_${classe.name}_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  const exportStudentCSV = (student, className) => {
+    let csv = 'Matière,Coefficient,Moyenne,Note/20\n';
     
-    try {
-      await onDeleteStudent(studentId);
-      setShowDeleteModal(false);
-      setStudentToDelete(null);
-      
-      // Afficher le message de succès
-      setSuccessMessage("L'étudiant a été supprimé avec succès.");
-      setShowSuccessModal(true);
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
-    } finally {
-      setDeleting(false);
-    }
+    Object.values(student.subjects)
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach(subject => {
+        if (subject.average) {
+          const noteOver20 = subject.noteOver20 || ((subject.average / subject.maxPoints) * 20);
+          csv += `"${subject.name}",${subject.coefficient},${subject.average.toFixed(1)}/${subject.maxPoints.toFixed(0)},${noteOver20.toFixed(1)}/20\n`;
+        }
+      });
+    
+    csv += `\nMOYENNE GÉNÉRALE,—,${student.averageScore.toFixed(2)}/20,${getAppreciation(student.averageScore)}\n`;
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Bulletin_${student.nom}_${student.prenom}_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
   };
 
-  const handleCloseDeleteModal = () => {
-    if (!deleting) {
-      setShowDeleteModal(false);
-      setStudentToDelete(null);
-    }
-  };
+  // ==================== EXPORT PDF ====================
+  const exportClassPDF = (classe) => {
+    const allSubjectsSet = new Set();
+    classe.students.forEach(student => {
+      Object.keys(student.subjects).forEach(subjectName => {
+        allSubjectsSet.add(subjectName);
+      });
+    });
+    const allSubjects = Array.from(allSubjectsSet).sort();
 
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.matricule.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesClass = selectedClass === '' || student.classe === selectedClass;
-    return matchesSearch && matchesClass;
-  });
+    // Calculer les rangs
+    const studentsWithRanks = [...classe.students]
+      .sort((a, b) => b.averageScore - a.averageScore)
+      .map((student, index) => ({
+        ...student,
+        rank: index + 1
+      }));
 
-  const classes = [...new Set(students.map(s => s.classe))].filter(Boolean);
-
-  return (
-    <div className="card">
-      <div className="card-header">
-        <h2 className="card-title">
-          <Users className="icon" />
-          Liste des Étudiants Inscrits
-        </h2>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="btn btn-primary"
-        >
-          <UserPlus className="icon" />
-          Inscrire Étudiant
-        </button>
-      </div>
-
-      {/* Statistiques en haut */}
-      {students.length > 0 && (
-        <div style={{
-          padding: '1.5rem',
-          backgroundColor: '#fafafa',
-          borderBottom: '1px solid #e5e7eb'
-        }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '1rem'
-          }}>
-            <div style={{
-              padding: '1.25rem',
-              backgroundColor: 'white',
-              borderRadius: '0.5rem',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}>
-                <div>
-                  <div style={{
-                    fontSize: '0.875rem',
-                    fontWeight: '500',
-                    color: '#666',
-                    marginBottom: '0.5rem'
-                  }}>
-                    Total Étudiants
-                  </div>
-                  <div style={{
-                    fontSize: '1.75rem',
-                    fontWeight: 'bold',
-                    color: '#333'
-                  }}>
-                    {students.length}
-                  </div>
-                </div>
-                <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '0.5rem',
-                  backgroundColor: '#f5f5f5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <Users style={{ width: '20px', height: '20px', color: '#555' }} />
-                </div>
-              </div>
-            </div>
-
-            <div style={{
-              padding: '1.25rem',
-              backgroundColor: 'white',
-              borderRadius: '0.5rem',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}>
-                <div>
-                  <div style={{
-                    fontSize: '0.875rem',
-                    fontWeight: '500',
-                    color: '#666',
-                    marginBottom: '0.5rem'
-                  }}>
-                    Classes
-                  </div>
-                  <div style={{
-                    fontSize: '1.75rem',
-                    fontWeight: 'bold',
-                    color: '#333'
-                  }}>
-                    {classes.length}
-                  </div>
-                </div>
-                <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '0.5rem',
-                  backgroundColor: '#f5f5f5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <span style={{ fontSize: '1.25rem' }}>📚</span>
-                </div>
-              </div>
-            </div>
-
-            <div style={{
-              padding: '1.25rem',
-              backgroundColor: 'white',
-              borderRadius: '0.5rem',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}>
-                <div>
-                  <div style={{
-                    fontSize: '0.875rem',
-                    fontWeight: '500',
-                    color: '#666',
-                    marginBottom: '0.5rem'
-                  }}>
-                    Garçons
-                  </div>
-                  <div style={{
-                    fontSize: '1.75rem',
-                    fontWeight: 'bold',
-                    color: '#333'
-                  }}>
-                    {students.filter(s => s.genre === 'M').length}
-                  </div>
-                </div>
-                <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '0.5rem',
-                  backgroundColor: '#f5f5f5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <span style={{ fontSize: '1.25rem' }}>👨‍🎓</span>
-                </div>
-              </div>
-            </div>
-
-            <div style={{
-              padding: '1.25rem',
-              backgroundColor: 'white',
-              borderRadius: '0.5rem',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}>
-                <div>
-                  <div style={{
-                    fontSize: '0.875rem',
-                    fontWeight: '500',
-                    color: '#666',
-                    marginBottom: '0.5rem'
-                  }}>
-                    Filles
-                  </div>
-                  <div style={{
-                    fontSize: '1.75rem',
-                    fontWeight: 'bold',
-                    color: '#333'
-                  }}>
-                    {students.filter(s => s.genre === 'F').length}
-                  </div>
-                </div>
-                <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '0.5rem',
-                  backgroundColor: '#f5f5f5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <span style={{ fontSize: '1.25rem' }}>👩‍🎓</span>
-                </div>
-              </div>
-            </div>
-          </div>
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Bulletin de Classe - ${classe.name}</title>
+        <style>
+          @media print {
+            @page { margin: 1cm; }
+            body { margin: 0; }
+          }
+          body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            color: #000;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 15px;
+          }
+          .header h1 {
+            margin: 0;
+            color: #1e40af;
+            font-size: 28px;
+          }
+          .header p {
+            margin: 5px 0;
+            color: #6b7280;
+            font-size: 14px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 11px;
+          }
+          th, td {
+            border: 1px solid #d1d5db;
+            padding: 8px;
+            text-align: center;
+          }
+          th {
+            background-color: #eff6ff;
+            font-weight: bold;
+            color: #1e40af;
+          }
+          .rank-col {
+            font-weight: bold;
+            color: #1f2937;
+          }
+          .student-name {
+            text-align: left;
+            font-weight: 600;
+          }
+          .matricule {
+            font-family: monospace;
+            font-size: 10px;
+            color: #6b7280;
+          }
+          .moyenne-col {
+            background-color: #f0f9ff;
+            font-weight: bold;
+            color: #1f2937;
+          }
+          .score-cell {
+            color: #1f2937;
+            font-weight: 600;
+          }
+          .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 10px;
+            color: #9ca3af;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>📚 Bulletin de Classe</h1>
+          <p><strong>${classe.name}</strong></p>
+          <p>${classe.totalStudents} étudiant${classe.totalStudents > 1 ? 's' : ''} • ${new Date().toLocaleDateString('fr-FR')}</p>
         </div>
-      )}
-
-      {/* Filtres de recherche améliorés */}
-      <div style={{
-        padding: '1.5rem',
-        backgroundColor: 'white',
-        borderBottom: '1px solid #e5e7eb'
-      }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr auto',
-          gap: '1rem',
-          alignItems: 'center'
-        }}>
-          {/* Barre de recherche */}
-          <div style={{
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center'
-          }}>
-            <Search style={{
-              position: 'absolute',
-              left: '1rem',
-              width: '18px',
-              height: '18px',
-              color: '#9ca3af'
-            }} />
-            <input
-              type="text"
-              placeholder="Rechercher par nom, prénom ou matricule..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem 0.75rem 2.75rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '0.5rem',
-                fontSize: '0.875rem',
-                transition: 'all 0.2s',
-                outline: 'none'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#555'}
-              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                style={{
-                  position: 'absolute',
-                  right: '1rem',
-                  padding: '0.25rem',
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: 'pointer'
-                }}
-              >
-                <X style={{ width: '14px', height: '14px', color: '#6b7280' }} />
-              </button>
-            )}
-          </div>
-
-          {/* Filtre par classe */}
-          <div style={{ position: 'relative', minWidth: '180px' }}>
-            <select
-              value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.75rem 2.25rem 0.75rem 1rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '0.5rem',
-                fontSize: '0.875rem',
-                backgroundColor: 'white',
-                cursor: 'pointer',
-                appearance: 'none',
-                outline: 'none'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#555'}
-              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-            >
-              <option value="">Toutes les classes</option>
-              {classes.map(classe => (
-                <option key={classe} value={classe}>{classe}</option>
-              ))}
-            </select>
-            <div style={{
-              position: 'absolute',
-              right: '1rem',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              pointerEvents: 'none',
-              color: '#6b7280',
-              fontSize: '0.75rem'
-            }}>▼</div>
-          </div>
-        </div>
-
-        {/* Résultats de recherche */}
-        {(searchTerm || selectedClass) && (
-          <div style={{
-            marginTop: '1rem',
-            padding: '0.75rem 1rem',
-            backgroundColor: '#f5f5f5',
-            borderRadius: '0.375rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <span style={{ fontSize: '0.875rem', color: '#555' }}>
-              <strong>{filteredStudents.length}</strong> étudiant(s) trouvé(s)
-            </span>
-            <button
-              onClick={() => {
-                setSearchTerm('');
-                setSelectedClass('');
-              }}
-              style={{
-                padding: '0.375rem 0.75rem',
-                border: 'none',
-                borderRadius: '0.375rem',
-                backgroundColor: '#555',
-                color: 'white',
-                fontSize: '0.75rem',
-                cursor: 'pointer',
-                fontWeight: '500'
-              }}
-            >
-              Réinitialiser
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Liste des étudiants */}
-      <div className="table-container">
-        <table className="data-table">
+        
+        <table>
           <thead>
             <tr>
-              <th className="table-header">Matricule</th>
-              <th className="table-header">Nom Complet</th>
-              <th className="table-header">Classe</th>
-              <th className="table-header text-center">Genre</th>
-              <th className="table-header text-center">Statut</th>
-              <th className="table-header text-center">Actions</th>
+              <th style="width: 50px;">Rang</th>
+              <th style="width: 80px;">Matricule</th>
+              <th style="width: 150px;">Nom et Prénom</th>
+              ${allSubjects.map(subject => `<th>${subject}</th>`).join('')}
+              <th class="moyenne-col">Moyenne Générale</th>
             </tr>
           </thead>
           <tbody>
-            {filteredStudents.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="table-empty">
-                  {searchTerm || selectedClass ? 'Aucun étudiant trouvé avec ces critères.' : 'Aucun étudiant inscrit. Inscrivez votre premier étudiant.'}
-                </td>
-              </tr>
-            ) : (
-              filteredStudents.map(student => (
-                <tr key={student.id} className="table-row">
-                  <td className="table-cell">
-                    <span style={{
-                      padding: '0.25rem 0.75rem',
-                      backgroundColor: '#f5f5f5',
-                      color: '#333',
-                      borderRadius: '0.375rem',
-                      fontSize: '0.75rem',
-                      fontWeight: '500',
-                      border: '1px solid #e5e7eb'
-                    }}>
-                      {student.matricule}
-                    </span>
-                  </td>
-                  <td className="table-cell">
-                    <div style={{ fontWeight: '500', color: '#333' }}>
-                      {student.prenom} {student.nom}
-                    </div>
-                    {student.telephone && (
-                      <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.25rem' }}>{student.telephone}</div>
-                    )}
-                  </td>
-                  <td className="table-cell">
-                    <span style={{
-                      padding: '0.25rem 0.75rem',
-                      backgroundColor: '#f8f8f8',
-                      color: '#333',
-                      borderRadius: '0.375rem',
-                      fontSize: '0.75rem',
-                      fontWeight: '500',
-                      border: '1px solid #e5e7eb'
-                    }}>
-                      {student.classe}
-                    </span>
-                  </td>
-                  <td className="table-cell text-center">
-                    {student.genre && (
-                      <span style={{
-                        padding: '0.25rem 0.5rem',
-                        backgroundColor: student.genre === 'M' ? '#f0f0f0' : '#f5f5f5',
-                        color: '#333',
-                        borderRadius: '0.375rem',
-                        fontSize: '0.75rem',
-                        fontWeight: '500',
-                        border: `1px solid ${student.genre === 'M' ? '#d1d5db' : '#e5e7eb'}`
-                      }}>
-                        {student.genre === 'M' ? 'M' : 'F'}
-                      </span>
-                    )}
-                  </td>
-                  <td className="table-cell text-center">
-                    <span style={{
-                      padding: '0.25rem 0.75rem',
-                      backgroundColor: '#f0f9f0',
-                      color: '#166534',
-                      borderRadius: '0.375rem',
-                      fontSize: '0.75rem',
-                      fontWeight: '500',
-                      border: '1px solid #bbf7d0'
-                    }}>
-                      Inscrit
-                    </span>
-                  </td>
-                  <td className="table-cell text-center">
-                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                      <button 
-                        style={{
-                          padding: '0.5rem',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '0.375rem',
-                          backgroundColor: 'white',
-                          cursor: 'pointer',
-                          color: '#555',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.2s'
-                        }}
-                        title="Modifier"
-                        onClick={() => handleEdit(student)}
-                        onMouseOver={(e) => e.target.style.backgroundColor = '#f9fafb'}
-                        onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
-                      >
-                        <Edit style={{ width: '14px', height: '14px' }} />
-                      </button>
-                      <button 
-                        style={{
-                          padding: '0.5rem',
-                          border: '1px solid #fecaca',
-                          borderRadius: '0.375rem',
-                          backgroundColor: 'white',
-                          cursor: 'pointer',
-                          color: '#dc2626',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.2s'
-                        }}
-                        title="Supprimer"
-                        onClick={() => handleDeleteClick(student)}
-                        onMouseOver={(e) => e.target.style.backgroundColor = '#fef2f2'}
-                        onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
-                      >
-                        <Trash2 style={{ width: '14px', height: '14px' }} />
-                      </button>
-                    </div>
-                  </td>
+            ${studentsWithRanks.map(student => {
+              return `
+                <tr>
+                  <td class="rank-col">${student.rank}</td>
+                  <td class="matricule">${student.matricule}</td>
+                  <td class="student-name">${student.nom} ${student.prenom}</td>
+                  ${allSubjects.map(subjectName => {
+                    const subject = student.subjects[subjectName];
+                    if (!subject || !subject.average) return '<td>—</td>';
+                    return `<td class="score-cell">${subject.average.toFixed(1)}/${subject.maxPoints.toFixed(0)}</td>`;
+                  }).join('')}
+                  <td class="moyenne-col">${student.averageScore.toFixed(2)}/20</td>
                 </tr>
-              ))
-            )}
+              `;
+            }).join('')}
           </tbody>
         </table>
+        
+        <div class="footer">
+          <p>Document généré le ${new Date().toLocaleString('fr-FR')}</p>
+        </div>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
+  };
+
+  const exportStudentPDF = (student, className) => {
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Bulletin - ${student.nom} ${student.prenom}</title>
+        <style>
+          @media print {
+            @page { margin: 1.5cm; }
+            body { margin: 0; }
+          }
+          body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            color: #000;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border: 3px solid #3b82f6;
+            padding: 20px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+          }
+          .header h1 {
+            margin: 0;
+            color: #1e40af;
+            font-size: 32px;
+          }
+          .header .student-info {
+            margin-top: 15px;
+            font-size: 18px;
+            color: #1f2937;
+          }
+          .header .student-info strong {
+            color: #1e40af;
+          }
+          .moyenne-generale {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f0f9ff;
+            border: 2px solid #3b82f6;
+            border-radius: 10px;
+          }
+          .moyenne-generale .score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #1f2937;
+            margin: 10px 0;
+          }
+          .moyenne-generale .appreciation {
+            font-size: 20px;
+            color: #6b7280;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            font-size: 14px;
+          }
+          th, td {
+            border: 1px solid #d1d5db;
+            padding: 12px;
+            text-align: left;
+          }
+          th {
+            background-color: #eff6ff;
+            font-weight: bold;
+            color: #1e40af;
+            text-align: center;
+          }
+          .subject-name {
+            font-weight: 600;
+            color: #1f2937;
+          }
+          .coeff-badge {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: #10b981;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+          }
+          .score-cell {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #1f2937;
+          }
+          .note-over-20 {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            display: inline-block;
+            background-color: #f3f4f6;
+            color: #1f2937;
+          }
+          .footer-row {
+            background-color: #f8fafc;
+            font-weight: bold;
+            border-top: 3px solid #3b82f6;
+          }
+          .footer-row td {
+            font-size: 16px;
+            color: #1f2937;
+          }
+          .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: #9ca3af;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 20px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>📚 BULLETIN DE NOTES</h1>
+          <div class="student-info">
+            <p><strong>Nom:</strong> ${student.nom} ${student.prenom}</p>
+            <p><strong>Matricule:</strong> ${student.matricule}</p>
+            <p><strong>Classe:</strong> ${className}</p>
+            <p><strong>Nombre de matières:</strong> ${student.totalSubjects}</p>
+          </div>
+        </div>
+        
+        <div class="moyenne-generale">
+          <div style="font-size: 18px; color: #6b7280;">MOYENNE GÉNÉRALE</div>
+          <div class="score">${student.averageScore.toFixed(2)}/20</div>
+          <div class="appreciation">${getAppreciation(student.averageScore)}</div>
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 40%;">Matière</th>
+              <th style="width: 15%;">Coeff.</th>
+              <th style="width: 25%;">Moyenne</th>
+              <th style="width: 20%;">Note/20</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${Object.values(student.subjects)
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map(subject => {
+                if (!subject.average) return '';
+                const noteOver20 = subject.noteOver20 || ((subject.average / subject.maxPoints) * 20);
+                return `
+                  <tr>
+                    <td class="subject-name">${subject.name}</td>
+                    <td style="text-align: center;">
+                      <span class="coeff-badge">${subject.coefficient}</span>
+                    </td>
+                    <td class="score-cell">
+                      ${subject.average.toFixed(1)}/${subject.maxPoints.toFixed(0)}
+                    </td>
+                    <td style="text-align: center;">
+                      <span class="note-over-20">${noteOver20.toFixed(1)}/20</span>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            <tr class="footer-row">
+              <td colspan="2"><strong>MOYENNE GÉNÉRALE</strong></td>
+              <td class="score-cell" style="font-size: 18px;">
+                <strong>${student.averageScore.toFixed(2)}/20</strong>
+              </td>
+              <td style="text-align: center; color: #6b7280;">
+                ${getAppreciation(student.averageScore)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="footer">
+          <p>Document généré le ${new Date().toLocaleString('fr-FR')}</p>
+          <p>Système de Gestion des Résultats Scolaires</p>
+        </div>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
+  };
+
+  // Navigation
+  const goToClasses = () => {
+    setCurrentView('classes');
+    setSelectedClass(null);
+    setSelectedStudent(null);
+  };
+
+  const goToClassStudents = (classe) => {
+    setSelectedClass(classe);
+    setCurrentView('class-students');
+    setSelectedStudent(null);
+  };
+
+  const goToStudentDetails = (student) => {
+    setSelectedStudent(student);
+    setCurrentView('student-details');
+  };
+
+  const goBackFromStudentDetails = () => {
+    setCurrentView('class-students');
+    setSelectedStudent(null);
+  };
+
+  // Composant pour afficher l'info du trimestre
+  const renderTrimestreInfo = () => (
+    <div style={{ marginBottom: '1.5rem' }}>
+      <div style={{
+        padding: '1rem',
+        backgroundColor: '#eff6ff',
+        borderRadius: '8px',
+        border: '1px solid #bfdbfe',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem'
+      }}>
+        <Calendar style={{ width: '20px', height: '20px', color: '#2563eb' }} />
+        <div>
+          <div style={{ fontWeight: '600', color: '#1e40af', fontSize: '0.875rem' }}>
+            {currentTrimestre?.nom || 'Trimestre en cours'}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+            Résultats affichés pour ce trimestre
+          </div>
+        </div>
       </div>
+    </div>
+  );
 
-      {/* Modal d'ajout d'étudiant */}
-      {showAddModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '1rem'
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '0.5rem',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-            width: '100%',
-            maxWidth: '600px',
-            maxHeight: '90vh',
-            overflow: 'hidden'
-          }}>
-            {/* Header */}
-            <div style={{
-              padding: '1.25rem',
-              borderBottom: '1px solid #e5e7eb',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              backgroundColor: '#fafafa'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <UserPlus style={{ width: '20px', height: '20px', color: '#555' }} />
-                <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '600', color: '#333' }}>
-                  Inscrire un Nouvel Étudiant
-                </h2>
-              </div>
-              <button
-                onClick={() => {
-                  setShowAddModal(false);
-                  setNewStudent({
-                    matricule: '', nom: '', prenom: '', classe: '',
-                    dateNaissance: '', genre: '', telephone: '', adresse: ''
-                  });
-                  setErrors({});
-                }}
-                disabled={saving}
-                style={{
-                  padding: '0.5rem',
-                  border: 'none',
-                  borderRadius: '0.25rem',
-                  backgroundColor: 'transparent',
-                  cursor: saving ? 'not-allowed' : 'pointer'
-                }}
-              >
-                <X style={{ width: '18px', height: '18px', color: '#666' }} />
-              </button>
-            </div>
-
-            {/* Contenu scrollable */}
-            <div style={{ 
-              padding: '1.25rem',
-              maxHeight: 'calc(90vh - 120px)',
-              overflowY: 'auto'
-            }}>
-              <form onSubmit={handleSubmit} id="addStudentForm">
-                <div style={{ display: 'grid', gap: '1.25rem' }}>
-                  
-                  {/* Matricule */}
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#555',
-                      marginBottom: '0.5rem'
-                    }}>
-                      Matricule (optionnel)
-                    </label>
-                    <input
-                      type="text"
-                      value={newStudent.matricule}
-                      onChange={(e) => setNewStudent({...newStudent, matricule: e.target.value})}
-                      disabled={saving}
-                      placeholder="Auto-généré si laissé vide"
-                      style={{
-                        width: '100%',
-                        padding: '0.625rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '0.375rem',
-                        fontSize: '0.875rem'
-                      }}
-                    />
-                    {!newStudent.matricule && (
-                      <small style={{ color: '#666', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
-                        Matricule qui sera généré: <strong>{generateMatricule()}</strong>
-                      </small>
-                    )}
-                  </div>
-
-                  {/* Informations personnelles */}
-                  <div>
-                    <h3 style={{
-                      margin: '0 0 1rem 0',
-                      fontSize: '1rem',
-                      fontWeight: '600',
-                      color: '#333',
-                      paddingBottom: '0.5rem',
-                      borderBottom: '1px solid #e5e7eb'
-                    }}>
-                      Informations personnelles
-                    </h3>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                      <div>
-                        <label style={{
-                          display: 'block',
-                          fontSize: '0.875rem',
-                          fontWeight: '500',
-                          color: '#555',
-                          marginBottom: '0.5rem'
-                        }}>
-                          Nom *
-                        </label>
-                        <input
-                          type="text"
-                          value={newStudent.nom}
-                          onChange={(e) => {
-                            setNewStudent({...newStudent, nom: e.target.value});
-                            if (errors.nom) setErrors({...errors, nom: null});
-                          }}
-                          disabled={saving}
-                          placeholder="Ex: Rakoto"
-                          style={{
-                            width: '100%',
-                            padding: '0.625rem',
-                            border: `1px solid ${errors.nom ? '#dc2626' : '#d1d5db'}`,
-                            borderRadius: '0.375rem',
-                            fontSize: '0.875rem'
-                          }}
-                        />
-                        {errors.nom && (
-                          <span style={{ color: '#dc2626', fontSize: '0.75rem', display: 'block', marginTop: '0.25rem' }}>
-                            {errors.nom}
-                          </span>
-                        )}
-                      </div>
-
-                      <div>
-                        <label style={{
-                          display: 'block',
-                          fontSize: '0.875rem',
-                          fontWeight: '500',
-                          color: '#555',
-                          marginBottom: '0.5rem'
-                        }}>
-                          Prénom *
-                        </label>
-                        <input
-                          type="text"
-                          value={newStudent.prenom}
-                          onChange={(e) => {
-                            setNewStudent({...newStudent, prenom: e.target.value});
-                            if (errors.prenom) setErrors({...errors, prenom: null});
-                          }}
-                          disabled={saving}
-                          placeholder="Ex: Jean"
-                          style={{
-                            width: '100%',
-                            padding: '0.625rem',
-                            border: `1px solid ${errors.prenom ? '#dc2626' : '#d1d5db'}`,
-                            borderRadius: '0.375rem',
-                            fontSize: '0.875rem'
-                          }}
-                        />
-                        {errors.prenom && (
-                          <span style={{ color: '#dc2626', fontSize: '0.75rem', display: 'block', marginTop: '0.25rem' }}>
-                            {errors.prenom}
-                          </span>
-                        )}
-                      </div>
-
-                      <div>
-                        <label style={{
-                          display: 'block',
-                          fontSize: '0.875rem',
-                          fontWeight: '500',
-                          color: '#555',
-                          marginBottom: '0.5rem'
-                        }}>
-                          Genre
-                        </label>
-                        <select
-                          value={newStudent.genre}
-                          onChange={(e) => setNewStudent({...newStudent, genre: e.target.value})}
-                          disabled={saving}
-                          style={{
-                            width: '100%',
-                            padding: '0.625rem',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '0.375rem',
-                            fontSize: '0.875rem',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <option value="">Sélectionner</option>
-                          <option value="M">Masculin</option>
-                          <option value="F">Féminin</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          fontSize: '0.875rem',
-                          fontWeight: '500',
-                          color: '#555',
-                          marginBottom: '0.5rem'
-                        }}>
-                          <Calendar style={{ width: '14px', height: '14px' }} />
-                          Date de naissance
-                        </label>
-                        <input
-                          type="date"
-                          value={newStudent.dateNaissance}
-                          onChange={(e) => setNewStudent({...newStudent, dateNaissance: e.target.value})}
-                          disabled={saving}
-                          style={{
-                            width: '100%',
-                            padding: '0.625rem',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '0.375rem',
-                            fontSize: '0.875rem'
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Informations scolaires */}
-                  <div>
-                    <h3 style={{
-                      margin: '0 0 1rem 0',
-                      fontSize: '1rem',
-                      fontWeight: '600',
-                      color: '#333',
-                      paddingBottom: '0.5rem',
-                      borderBottom: '1px solid #e5e7eb'
-                    }}>
-                      Informations scolaires
-                    </h3>
-                    
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        color: '#555',
-                        marginBottom: '0.5rem'
-                      }}>
-                        Classe *
-                      </label>
-                      <input
-                        type="text"
-                        value={newStudent.classe}
-                        onChange={(e) => {
-                          setNewStudent({...newStudent, classe: e.target.value});
-                          if (errors.classe) setErrors({...errors, classe: null});
-                        }}
-                        disabled={saving}
-                        placeholder="Ex: Terminal A, 1ère S, etc."
-                        style={{
-                          width: '100%',
-                          padding: '0.625rem',
-                          border: `1px solid ${errors.classe ? '#dc2626' : '#d1d5db'}`,
-                          borderRadius: '0.375rem',
-                          fontSize: '0.875rem'
-                        }}
-                      />
-                      {errors.classe && (
-                        <span style={{ color: '#dc2626', fontSize: '0.75rem', display: 'block', marginTop: '0.25rem' }}>
-                          {errors.classe}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Contact */}
-                  <div>
-                    <h3 style={{
-                      margin: '0 0 1rem 0',
-                      fontSize: '1rem',
-                      fontWeight: '600',
-                      color: '#333',
-                      paddingBottom: '0.5rem',
-                      borderBottom: '1px solid #e5e7eb'
-                    }}>
-                      Informations de contact
-                    </h3>
-                    
-                    <div style={{ display: 'grid', gap: '1rem' }}>
-                      <div>
-                        <label style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          fontSize: '0.875rem',
-                          fontWeight: '500',
-                          color: '#555',
-                          marginBottom: '0.5rem'
-                        }}>
-                          <Phone style={{ width: '14px', height: '14px' }} />
-                          Téléphone
-                        </label>
-                        <input
-                          type="tel"
-                          value={newStudent.telephone}
-                          onChange={(e) => setNewStudent({...newStudent, telephone: e.target.value})}
-                          disabled={saving}
-                          placeholder="Ex: +261 34 12 345 67"
-                          style={{
-                            width: '100%',
-                            padding: '0.625rem',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '0.375rem',
-                            fontSize: '0.875rem'
-                          }}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          fontSize: '0.875rem',
-                          fontWeight: '500',
-                          color: '#555',
-                          marginBottom: '0.5rem'
-                        }}>
-                          <MapPin style={{ width: '14px', height: '14px' }} />
-                          Adresse
-                        </label>
-                        <textarea
-                          value={newStudent.adresse}
-                          onChange={(e) => setNewStudent({...newStudent, adresse: e.target.value})}
-                          disabled={saving}
-                          rows="3"
-                          placeholder="Adresse complète..."
-                          style={{
-                            width: '100%',
-                            padding: '0.625rem',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '0.375rem',
-                            fontSize: '0.875rem',
-                            resize: 'vertical'
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </form>
-            </div>
-
-            {/* Footer avec boutons */}
-            <div style={{
-              padding: '1.25rem',
-              borderTop: '1px solid #e5e7eb',
-              backgroundColor: '#fafafa',
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '0.75rem'
-            }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowAddModal(false);
-                  setNewStudent({
-                    matricule: '', nom: '', prenom: '', classe: '',
-                    dateNaissance: '', genre: '', telephone: '', adresse: ''
-                  });
-                  setErrors({});
-                }}
-                disabled={saving}
-                style={{
-                  padding: '0.625rem 1.25rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  backgroundColor: 'white',
-                  color: '#555',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  cursor: saving ? 'not-allowed' : 'pointer',
-                  opacity: saving ? 0.5 : 1
-                }}
-              >
-                Annuler
-              </button>
-              
-              <button
-                type="submit"
-                form="addStudentForm"
-                disabled={saving}
-                style={{
-                  padding: '0.625rem 1.25rem',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  backgroundColor: saving ? '#9ca3af' : '#555',
-                  color: 'white',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  cursor: saving ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-              >
-                <Save style={{ width: '14px', height: '14px' }} />
-                {saving ? 'Inscription...' : 'Inscrire l\'étudiant'}
-              </button>
+  // Vue 1: Liste des classes
+  const renderClassesView = () => {
+    if (classesList.length === 0) {
+      return (
+        <div className="card">
+          <div className="card-body">
+            <div style={{ textAlign: 'center', padding: '2rem' }}>
+              <GraduationCap style={{ width: '48px', height: '48px', color: '#9ca3af', margin: '0 auto 1rem' }} />
+              <h3>Aucune classe trouvée</h3>
+              <p style={{ color: '#6b7280' }}>
+                {loading ? 'Chargement...' : 'Aucune donnée disponible pour les classes valides.'}
+              </p>
+              {!loading && (
+                <button 
+                  className="btn btn-primary"
+                  onClick={loadAllData}
+                  style={{ marginTop: '1rem' }}
+                >
+                  <RefreshCw style={{ width: '16px', height: '16px', marginRight: '0.5rem' }} />
+                  Réessayer
+                </button>
+              )}
             </div>
           </div>
         </div>
-      )}
+      );
+    }
 
-      {/* Modal d'édition */}
-      <EditStudentModal 
-        student={editingStudent}
-        isOpen={showEditModal}
-        onClose={handleCloseEditModal}
-        onSave={handleSaveEdit}
-      />
+    return (
+      <div>
+        {renderTrimestreInfo()}
+        
+        <div style={{ display: 'grid', gap: '1.5rem', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
+          {classesList.map((classe) => (
+            <div 
+              key={classe.name} 
+              className="card clickable-card"
+              onClick={() => goToClassStudents(classe)}
+              style={{ cursor: 'pointer', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+            >
+              <div className="card-header" style={{ backgroundColor: '#eff6ff' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ 
+                      width: '50px', 
+                      height: '50px', 
+                      borderRadius: '0.5rem', 
+                      backgroundColor: '#3b82f6',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <GraduationCap style={{ width: '24px', height: '24px', color: 'white' }} />
+                    </div>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#1e40af' }}>
+                        {classe.name}
+                      </h3>
+                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: '#6b7280' }}>
+                        {classe.totalStudents} étudiant{classe.totalStudents > 1 ? 's' : ''}
+                        {classe.studentsWithNotes > 0 && ` • ${classe.studentsWithNotes} avec notes`}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight style={{ width: '24px', height: '24px', color: '#3b82f6' }} />
+                </div>
+              </div>
+              
+              <div className="card-body">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280' }}>
+                    <Users style={{ width: '16px', height: '16px' }} />
+                    <span>{classe.totalCorrections} corrections</span>
+                  </div>
+                  {classe.averageScore > 0 && (
+                    <div style={{ 
+                      padding: '0.25rem 0.75rem', 
+                      backgroundColor: '#f0f9ff',
+                      borderRadius: '0.375rem',
+                      border: '1px solid #bfdbfe'
+                    }}>
+                      <span style={{ fontWeight: '600', color: '#1e40af' }}>
+                        {classe.averageScore.toFixed(1)}/20
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
-      {/* Modal de confirmation de suppression */}
-      <DeleteConfirmationModal
-        student={studentToDelete}
-        isOpen={showDeleteModal}
-        onClose={handleCloseDeleteModal}
-        onConfirm={handleConfirmDelete}
-        loading={deleting}
-      />
+  // Vue 2: Tableau global des étudiants d'une classe
+  const renderClassStudentsView = () => {
+    if (!selectedClass) return null;
 
-      {/* Modal de succès */}
-      <SuccessModal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        message={successMessage}
-      />
+    const allSubjectsSet = new Set();
+    selectedClass.students.forEach(student => {
+      Object.keys(student.subjects).forEach(subjectName => {
+        allSubjectsSet.add(subjectName);
+      });
+    });
+    const allSubjects = Array.from(allSubjectsSet).sort();
 
-      <style jsx>{`
-        .card {
-          background: white;
-          border-radius: 0.5rem;
-          border: 1px solid #e5e7eb;
-          overflow: hidden;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
+    // Calculer les rangs des étudiants AVEC NOTES seulement
+    const studentsWithRanks = [...selectedClass.students]
+      .filter(student => student.hasNotes)
+      .sort((a, b) => b.averageScore - a.averageScore)
+      .map((student, index) => ({
+        ...student,
+        rank: index + 1
+      }));
 
-        .card-header {
-          padding: 1.5rem;
-          border-bottom: 1px solid #e5e7eb;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background: #fafafa;
-        }
+    return (
+      <div>
+        {/* Navigation breadcrumb */}
+        <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button 
+            className="btn btn-secondary btn-sm"
+            onClick={goToClasses}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <ArrowLeft style={{ width: '16px', height: '16px' }} />
+            Retour aux classes
+          </button>
+          <span style={{ color: '#9ca3af' }}>/</span>
+          <span style={{ fontWeight: '600', color: '#1f2937' }}>{selectedClass.name}</span>
+        </div>
 
-        .card-title {
-          margin: 0;
-          font-size: 1.5rem;
-          font-weight: 600;
-          color: #333;
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-        }
+        {/* En-tête de la classe */}
+        <div className="card" style={{ marginBottom: '1.5rem' }}>
+          <div className="card-header" style={{ backgroundColor: '#eff6ff' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ 
+                  width: '60px', 
+                  height: '60px', 
+                  borderRadius: '0.5rem', 
+                  backgroundColor: '#3b82f6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <GraduationCap style={{ width: '32px', height: '32px', color: 'white' }} />
+                </div>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: '1.875rem', color: '#1e40af' }}>
+                    {selectedClass.name}
+                  </h2>
+                  <p style={{ margin: '0.25rem 0 0 0', fontSize: '1rem', color: '#6b7280' }}>
+                    {selectedClass.totalStudents} étudiant{selectedClass.totalStudents > 1 ? 's' : ''} • 
+                    {selectedClass.studentsWithNotes > 0 ? ` ${selectedClass.studentsWithNotes} avec notes` : ' Aucune note'}
+                    {selectedClass.totalCorrections > 0 && ` • ${selectedClass.totalCorrections} corrections`}
+                  </p>
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <button 
+                  className="btn btn-success btn-sm"
+                  onClick={() => exportClassCSV(selectedClass)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                  <Download style={{ width: '16px', height: '16px' }} />
+                  Export CSV
+                </button>
+                <button 
+                  className="btn btn-primary btn-sm"
+                  onClick={() => exportClassPDF(selectedClass)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                  <FileText style={{ width: '16px', height: '16px' }} />
+                  Export PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        .icon {
-          width: 20px;
-          height: 20px;
-        }
+        {/* Tableau global des étudiants avec matières en colonnes */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">
+              <Users style={{ display: 'inline', marginRight: '0.5rem' }} />
+              Bulletin de Classe - {selectedClass.name}
+            </h3>
+          </div>
+          <div className="card-body" style={{ padding: '0' }}>
+            <div className="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ minWidth: '60px', position: 'sticky', left: 0, backgroundColor: '#f8fafc', zIndex: 10, textAlign: 'center' }}>Rang</th>
+                    <th style={{ minWidth: '100px', position: 'sticky', left: '60px', backgroundColor: '#f8fafc', zIndex: 10 }}>Matricule</th>
+                    <th style={{ minWidth: '200px', position: 'sticky', left: '160px', backgroundColor: '#f8fafc', zIndex: 10 }}>Nom et Prénom</th>
+                    {allSubjects.map((subjectName, idx) => (
+                      <th key={idx} style={{ minWidth: '90px', textAlign: 'center' }}>
+                        {subjectName}
+                      </th>
+                    ))}
+                    <th style={{ minWidth: '120px', textAlign: 'center', backgroundColor: '#eff6ff', fontWeight: 'bold' }}>
+                      Moyenne Générale
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {studentsWithRanks.length === 0 ? (
+                    <tr>
+                      <td colSpan={allSubjects.length + 4} style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                        Aucun étudiant avec des notes dans cette classe
+                      </td>
+                    </tr>
+                  ) : (
+                    studentsWithRanks.map((student) => (
+                      <tr 
+                        key={student.matricule} 
+                        className="clickable-row"
+                        onClick={() => goToStudentDetails(student)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <td style={{ position: 'sticky', left: 0, backgroundColor: 'white', zIndex: 5, textAlign: 'center', fontWeight: 'bold', color: '#1f2937' }}>
+                          {student.rank}
+                        </td>
+                        <td style={{ position: 'sticky', left: '60px', backgroundColor: 'white', zIndex: 5, fontFamily: 'monospace', fontSize: '0.875rem', color: '#6b7280' }}>
+                          {student.matricule}
+                        </td>
+                        <td style={{ position: 'sticky', left: '160px', backgroundColor: 'white', zIndex: 5, fontWeight: '600', color: '#1f2937' }}>
+                          {student.nom} {student.prenom}
+                        </td>
+                        {allSubjects.map((subjectName, idx) => {
+                          const subject = student.subjects[subjectName];
+                          if (!subject || !subject.average) {
+                            return <td key={idx} style={{ textAlign: 'center', color: '#9ca3af' }}>—</td>;
+                          }
+                          const avgScore = subject.average;
+                          const maxPoints = subject.maxPoints;
+                          return (
+                            <td key={idx} style={{ textAlign: 'center' }}>
+                              <span style={{
+                                padding: '0.375rem 0.5rem',
+                                borderRadius: '0.375rem',
+                                backgroundColor: '#f3f4f6',
+                                color: '#1f2937',
+                                fontWeight: '600',
+                                fontSize: '0.875rem',
+                                display: 'inline-block',
+                                minWidth: '65px'
+                              }}>
+                                {avgScore.toFixed(1)}/{maxPoints.toFixed(0)}
+                              </span>
+                            </td>
+                          );
+                        })}
+                        <td style={{ textAlign: 'center', backgroundColor: '#f0f9ff' }}>
+                          <span style={{
+                            padding: '0.5rem 0.75rem',
+                            borderRadius: '0.5rem',
+                            fontWeight: 'bold',
+                            fontSize: '1rem',
+                            backgroundColor: '#e0e7ff',
+                            color: '#1f2937',
+                            display: 'inline-block',
+                            minWidth: '70px'
+                          }}>
+                            {student.averageScore.toFixed(2)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
-        .btn {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.75rem 1.25rem;
-          border: none;
-          border-radius: 0.375rem;
-          font-size: 0.875rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
+  // Vue 3: Détails d'un étudiant (bulletin complet)
+  const renderStudentDetailsView = () => {
+    if (!selectedStudent || !selectedClass) return null;
 
-        .btn-primary {
-          background: #555;
-          color: white;
-        }
+    const subjectsArray = Object.values(selectedStudent.subjects).filter(subject => subject.average);
 
-        .btn-primary:hover {
-          background: #444;
-        }
+    return (
+      <div>
+        {/* Navigation breadcrumb */}
+        <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button 
+            className="btn btn-secondary btn-sm"
+            onClick={goToClasses}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <Home style={{ width: '14px', height: '14px' }} />
+            Classes
+          </button>
+          <span style={{ color: '#9ca3af' }}>/</span>
+          <button 
+            className="btn btn-secondary btn-sm"
+            onClick={goBackFromStudentDetails}
+          >
+            {selectedClass.name}
+          </button>
+          <span style={{ color: '#9ca3af' }}>/</span>
+          <span style={{ fontWeight: '600', color: '#1f2937' }}>{selectedStudent.nom} {selectedStudent.prenom}</span>
+        </div>
 
-        .table-container {
-          overflow-x: auto;
-        }
+        {/* En-tête étudiant */}
+        <div className="card" style={{ marginBottom: '1.5rem' }}>
+          <div className="card-header" style={{ backgroundColor: '#f0f9ff' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                <div style={{ 
+                  width: '80px', 
+                  height: '80px', 
+                  borderRadius: '50%', 
+                  backgroundColor: '#3b82f6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 'bold',
+                  fontSize: '2rem',
+                  color: 'white'
+                }}>
+                  {selectedStudent.nom.substring(0, 1).toUpperCase()}
+                  {selectedStudent.prenom.substring(0, 1).toUpperCase()}
+                </div>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: '2rem', color: '#1e40af' }}>
+                    {selectedStudent.nom} {selectedStudent.prenom}
+                  </h2>
+                  <p style={{ margin: '0.5rem 0 0 0', fontSize: '1rem', color: '#6b7280' }}>
+                    Matricule: {selectedStudent.matricule} • Classe: {selectedClass.name}
+                  </p>
+                  <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: '#6b7280' }}>
+                    {subjectsArray.length} matière{subjectsArray.length > 1 ? 's' : ''} notée{subjectsArray.length > 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+              
+              {selectedStudent.hasNotes && (
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ 
+                    fontSize: '2.5rem', 
+                    fontWeight: 'bold',
+                    color: getScoreColor(selectedStudent.averageScore)
+                  }}>
+                    {formatScore(selectedStudent.averageScore, 20)}
+                  </div>
+                  <div style={{ fontSize: '1rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                    {getAppreciation(selectedStudent.averageScore)}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-        .data-table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 0.875rem;
-        }
+        {/* Boutons d'export */}
+        {selectedStudent.hasNotes && (
+          <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+            <button 
+              className="btn btn-success btn-sm"
+              onClick={() => exportStudentCSV(selectedStudent, selectedClass.name)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <Download style={{ width: '16px', height: '16px' }} />
+              Export CSV
+            </button>
+            <button 
+              className="btn btn-primary btn-sm"
+              onClick={() => exportStudentPDF(selectedStudent, selectedClass.name)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <FileText style={{ width: '16px', height: '16px' }} />
+              Export PDF
+            </button>
+          </div>
+        )}
 
-        .table-header {
-          background: #f8f8f8;
-          padding: 1rem;
-          text-align: left;
-          font-weight: 600;
-          color: #333;
-          border-bottom: 1px solid #e5e7eb;
-        }
+        {/* Bulletin détaillé */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">
+              <BookOpen style={{ display: 'inline', marginRight: '0.5rem' }} />
+              Bulletin de Notes Détaillé
+            </h3>
+          </div>
+          <div className="card-body" style={{ padding: '0' }}>
+            {subjectsArray.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
+                <BookOpen style={{ width: '48px', height: '48px', margin: '0 auto 1rem', color: '#d1d5db' }} />
+                <h4>Aucune note disponible</h4>
+                <p>Cet étudiant n'a pas encore de notes enregistrées.</p>
+              </div>
+            ) : (
+              <div className="table-responsive">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style={{ width: '50%' }}>Matière</th>
+                      <th style={{ textAlign: 'center', width: '15%' }}>Coeff</th>
+                      <th style={{ textAlign: 'center', width: '20%' }}>Moyenne</th>
+                      <th style={{ textAlign: 'center', width: '15%' }}>Note/20</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {subjectsArray
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map((subject, index) => {
+                        const coefficient = subject.coefficient || 1;
+                        const maxPoints = subject.maxPoints || (20 * coefficient);
+                        const noteOver20 = subject.noteOver20 || ((subject.average / maxPoints) * 20);
+                        
+                        return (
+                          <tr key={index}>
+                            <td>
+                              <div style={{ fontWeight: '600', color: '#1f2937', fontSize: '1rem' }}>
+                                {subject.name}
+                              </div>
+                            </td>
+                            
+                            <td style={{ textAlign: 'center' }}>
+                              <span style={{
+                                width: '32px',
+                                height: '32px',
+                                backgroundColor: '#10b981',
+                                color: 'white',
+                                borderRadius: '50%',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontWeight: 'bold',
+                                fontSize: '0.875rem'
+                              }}>
+                                {coefficient}
+                              </span>
+                            </td>
+                            
+                            <td style={{ textAlign: 'center' }}>
+                              <span style={{
+                                fontSize: '1.25rem',
+                                fontWeight: 'bold',
+                                color: '#1f2937'
+                              }}>
+                                {formatScore(subject.average, maxPoints)}
+                              </span>
+                            </td>
+                            
+                            <td style={{ textAlign: 'center' }}>
+                              <span style={{
+                                padding: '0.5rem 0.75rem',
+                                borderRadius: '0.375rem',
+                                backgroundColor: '#f3f4f6',
+                                color: '#1f2937',
+                                fontWeight: 'bold',
+                                fontSize: '1rem'
+                              }}>
+                                {noteOver20.toFixed(1)}/20
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    
+                    <tr style={{ 
+                      backgroundColor: '#f8fafc', 
+                      fontWeight: 'bold',
+                      borderTop: '2px solid #e5e7eb'
+                    }}>
+                      <td style={{ fontSize: '1.125rem' }}>MOYENNE GÉNÉRALE</td>
+                      <td style={{ textAlign: 'center' }}>—</td>
+                      <td style={{ textAlign: 'center' }}>
+                        <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
+                          {formatScore(selectedStudent.averageScore, 20)}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <span style={{ fontSize: '1rem', color: '#6b7280' }}>
+                          {getAppreciation(selectedStudent.averageScore)}
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
-        .text-center {
-          text-align: center;
-        }
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', padding: '2rem' }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+        {/* En-tête principal */}
+        <div style={{ marginBottom: '2rem' }}>
+          <h1 style={{ margin: 0, fontSize: '2.5rem', color: '#1f2937', fontWeight: 'bold' }}>
+            📚 Système de Gestion des Résultats
+          </h1>
+          <p style={{ margin: '0.5rem 0 0 0', fontSize: '1.125rem', color: '#6b7280' }}>
+            Consultation des notes et bulletins scolaires
+          </p>
+        </div>
 
-        .table-row {
-          border-bottom: 1px solid #f0f0f0;
-        }
+        {/* Bouton actualiser */}
+        {currentView === 'classes' && (
+          <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+            <button 
+              className="btn btn-secondary btn-sm" 
+              onClick={() => loadAllData()}
+              disabled={refreshing}
+            >
+              <RefreshCw style={{ width: '16px', height: '16px', marginRight: '0.5rem' }} />
+              Actualiser
+            </button>
+          </div>
+        )}
 
-        .table-row:hover {
-          background: #fafafa;
-        }
+        {/* Contenu principal selon la vue */}
+        {loading ? (
+          <div className="card">
+            <div className="card-body">
+              <div style={{ textAlign: 'center', padding: '2rem' }}>
+                <div style={{ 
+                  width: '40px', 
+                  height: '40px', 
+                  border: '4px solid #f3f4f6', 
+                  borderTop: '4px solid #3b82f6',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite',
+                  margin: '0 auto 1rem'
+                }}></div>
+                <p>Chargement des données...</p>
+              </div>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="card">
+            <div className="card-body">
+              <div className="alert alert-danger">
+                <AlertCircle style={{ width: '20px', height: '20px', display: 'inline', marginRight: '0.5rem' }} />
+                {error}
+              </div>
+              <button className="btn btn-primary" onClick={() => loadAllData()}>
+                Réessayer
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {currentView === 'classes' && renderClassesView()}
+            {currentView === 'class-students' && renderClassStudentsView()}
+            {currentView === 'student-details' && renderStudentDetailsView()}
+          </>
+        )}
 
-        .table-cell {
-          padding: 1rem;
-          color: #555;
-        }
+        {/* Styles CSS */}
+        <style>
+          {`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            
+            .card {
+              background: white;
+              border-radius: 8px;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+              border: 1px solid #e5e7eb;
+            }
+            
+            .card:hover {
+              box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            }
 
-        .table-empty {
-          padding: 3rem 1rem;
-          text-align: center;
-          color: #666;
-          font-style: italic;
-        }
-      `}</style>
+            .clickable-card:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            }
+
+            .clickable-row:hover {
+              background-color: #f8fafc !important;
+              transform: scale(1.01);
+              transition: all 0.2s ease;
+            }
+            
+            .card-header {
+              padding: 1.5rem;
+              border-bottom: 1px solid #e5e7eb;
+              background-color: #f8fafc;
+            }
+            
+            .card-body {
+              padding: 1.5rem;
+            }
+            
+            .card-title {
+              margin: 0;
+              font-size: 1.25rem;
+              font-weight: 600;
+              color: #1f2937;
+            }
+            
+            .btn {
+              padding: 0.5rem 1rem;
+              border-radius: 0.375rem;
+              border: 1px solid transparent;
+              font-weight: 500;
+              cursor: pointer;
+              display: inline-flex;
+              align-items: center;
+              text-decoration: none;
+              transition: all 0.2s ease;
+            }
+            
+            .btn:disabled {
+              opacity: 0.6;
+              cursor: not-allowed;
+            }
+            
+            .btn-primary {
+              background-color: #3b82f6;
+              color: white;
+            }
+            
+            .btn-primary:hover:not(:disabled) {
+              background-color: #2563eb;
+            }
+            
+            .btn-secondary {
+              background-color: #6b7280;
+              color: white;
+            }
+            
+            .btn-secondary:hover:not(:disabled) {
+              background-color: #4b5563;
+            }
+
+            .btn-success {
+              background-color: #10b981;
+              color: white;
+            }
+            
+            .btn-success:hover:not(:disabled) {
+              background-color: #059669;
+            }
+            
+            .btn-sm {
+              padding: 0.375rem 0.75rem;
+              font-size: 0.875rem;
+            }
+            
+            .badge {
+              padding: 0.25rem 0.75rem;
+              border-radius: 9999px;
+              font-size: 0.75rem;
+              font-weight: 600;
+              text-transform: uppercase;
+            }
+            
+            .badge-info {
+              background-color: #dbeafe;
+              color: #1d4ed8;
+            }
+            
+            .table-responsive {
+              overflow-x: auto;
+            }
+            
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              font-size: 0.875rem;
+            }
+            
+            th, td {
+              padding: 0.75rem;
+              text-align: left;
+              border-bottom: 1px solid #e5e7eb;
+            }
+            
+            th {
+              background-color: #f8fafc;
+              font-weight: 600;
+              color: #374151;
+            }
+            
+            tbody tr:hover {
+              background-color: #f9fafb;
+            }
+            
+            .alert {
+              padding: 1rem;
+              border-radius: 0.5rem;
+              border: 1px solid;
+              margin-bottom: 1rem;
+            }
+            
+            .alert-danger {
+              background-color: #fef2f2;
+              border-color: #fecaca;
+              color: #991b1b;
+            }
+          `}
+        </style>
+      </div>
     </div>
   );
 };
 
-export default StudentsList;
+export default StudentResults;
