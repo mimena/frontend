@@ -1121,13 +1121,29 @@ const App = () => {
     };
   }, []);
 
-  // Charger la configuration depuis le localStorage
-  useEffect(() => {
-    const savedConfig = localStorage.getItem('schoolYearConfig');
-    if (savedConfig) {
-      setSchoolYearConfig(JSON.parse(savedConfig));
+// Charger la configuration depuis Firebase (avec fallback localStorage)
+useEffect(() => {
+  const loadConfig = async () => {
+    try {
+      const response = await fetch('https://scolaire.onrender.com/api/trimestres/config');
+      const data = await response.json();
+      
+      if (data.success && data.config) {
+        setSchoolYearConfig(data.config);
+        localStorage.setItem('schoolYearConfig', JSON.stringify(data.config));
+        console.log('✅ Config chargée depuis Firebase');
+      }
+    } catch (error) {
+      console.warn('⚠️ Firebase inaccessible, utilisation du cache local');
+      const savedConfig = localStorage.getItem('schoolYearConfig');
+      if (savedConfig) {
+        setSchoolYearConfig(JSON.parse(savedConfig));
+      }
     }
-  }, []);
+  };
+  
+  loadConfig();
+}, []);
 
   // Gérer le clic en dehors du menu profil
   useEffect(() => {
@@ -1225,36 +1241,63 @@ const App = () => {
   // Gérer la sauvegarde de la configuration
 // Gérer la sauvegarde de la configuration - SYNCHRONISÉE AVEC FLUTTER
 const handleSaveSchoolYearConfig = async (config) => {
+  console.log('🔵 [DEBUG] Début sauvegarde configuration:', config);
+  
   try {
-    // 1. Sauvegarder dans Firebase (POUR FLUTTER)
-    const firebaseResponse = await fetch('/api/trimestres/config', {
+    const payload = {
+      trimestres: config.trimestres || []
+    };
+    
+    console.log('🔵 [DEBUG] Payload à envoyer:', JSON.stringify(payload, null, 2));
+    
+    const apiUrl = 'https://scolaire.onrender.com/api/trimestres/config';
+    console.log('🔵 [DEBUG] URL API:', apiUrl);
+    
+    // 1. Sauvegarder dans Firebase
+    const firebaseResponse = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        trimestres: config.trimestres || []
-      }),
+      body: JSON.stringify(payload),
     });
 
+    console.log('🔵 [DEBUG] Status HTTP:', firebaseResponse.status);
+    const responseText = await firebaseResponse.text();
+    console.log('🔵 [DEBUG] Réponse brute:', responseText);
+
     if (!firebaseResponse.ok) {
-      throw new Error('Erreur synchronisation Firebase');
+      throw new Error(`Erreur HTTP ${firebaseResponse.status}: ${responseText}`);
     }
 
-    // 2. Sauvegarder dans localStorage (POUR REACT - EXISTANT)
-    setSchoolYearConfig(config);
-    localStorage.setItem('schoolYearConfig', JSON.stringify(config));
+    const responseData = JSON.parse(responseText);
+    console.log('🔵 [DEBUG] Réponse JSON:', responseData);
+
+    // 2. RE-CHARGER depuis Firebase pour vérifier la synchronisation
+    const verifyResponse = await fetch(apiUrl);
+    const verifyData = await verifyResponse.json();
+    console.log('🔵 [DEBUG] Vérification:', verifyData);
     
-    setShowYearConfig(false);
-    setSuccess('Configuration synchronisée React + Flutter !');
+    if (verifyData.success && verifyData.config) {
+      // 3. Mettre à jour React avec les données vérifiées
+      setSchoolYearConfig(verifyData.config);
+      localStorage.setItem('schoolYearConfig', JSON.stringify(verifyData.config));
+      
+      setShowYearConfig(false);
+      setSuccess(`✅ Configuration synchronisée React + Flutter ! (${verifyData.config.trimestres?.length || 0} trimestres)`);
+    } else {
+      throw new Error('Vérification échouée');
+    }
     
   } catch (error) {
-    console.error('Erreur synchronisation:', error);
+    console.error('❌ [DEBUG] Erreur synchronisation:', error);
+    console.error('❌ [DEBUG] Stack trace:', error.stack);
+    
     // Fallback: sauvegarder seulement dans localStorage
     setSchoolYearConfig(config);
     localStorage.setItem('schoolYearConfig', JSON.stringify(config));
     setShowYearConfig(false);
-    setSuccess('Configuration sauvegardée (React seulement)');
+    setError(`⚠️ Config sauvegardée localement uniquement: ${error.message}`);
   }
 };
 
