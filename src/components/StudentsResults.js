@@ -9,7 +9,8 @@ import {
   BookOpen,
   ChevronRight,
   Download,
-  FileText
+  FileText,
+  Calendar
 } from 'lucide-react';
 
 // Service API intégré
@@ -55,32 +56,8 @@ const apiService = {
     return await this.request('/results');
   }
 };
-// Récupérer le trimestre actuel depuis la config
-const currentTrimestre = getCurrentTrimestre(); // Passé en prop depuis App.js
 
-// Dans le JSX, en haut de la page :
-<div style={{ marginBottom: '1.5rem' }}>
-  <div style={{
-    padding: '1rem',
-    backgroundColor: '#eff6ff',
-    borderRadius: '8px',
-    border: '1px solid #bfdbfe',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem'
-  }}>
-    <Calendar style={{ width: '20px', height: '20px', color: '#2563eb' }} />
-    <div>
-      <div style={{ fontWeight: '600', color: '#1e40af', fontSize: '0.875rem' }}>
-        {currentTrimestre?.nom || 'Trimestre non défini'}
-      </div>
-      <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-        Résultats affichés pour ce trimestre
-      </div>
-    </div>
-  </div>
-</div>
-const StudentResults = () => {
+const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App.js via les props
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -588,7 +565,7 @@ const StudentResults = () => {
           .note-over-20 {
             padding: 8px 12px;
             border-radius: 6px;
-            font-weight: bold;
+                            font-weight: bold;
             display: inline-block;
             background-color: #f3f4f6;
             color: #1f2937;
@@ -707,6 +684,31 @@ const StudentResults = () => {
     setSelectedStudent(null);
   };
 
+  // Composant pour afficher l'info du trimestre
+  const renderTrimestreInfo = () => (
+    <div style={{ marginBottom: '1.5rem' }}>
+      <div style={{
+        padding: '1rem',
+        backgroundColor: '#eff6ff',
+        borderRadius: '8px',
+        border: '1px solid #bfdbfe',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem'
+      }}>
+        <Calendar style={{ width: '20px', height: '20px', color: '#2563eb' }} />
+        <div>
+          <div style={{ fontWeight: '600', color: '#1e40af', fontSize: '0.875rem' }}>
+            {currentTrimestre?.nom || 'Trimestre non défini'}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+            Résultats affichés pour ce trimestre
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   // Vue 1: Liste des classes (SANS MOYENNE GÉNÉRALE)
   const renderClassesView = () => {
     if (classesList.length === 0) {
@@ -726,51 +728,55 @@ const StudentResults = () => {
     }
 
     return (
-      <div style={{ display: 'grid', gap: '1.5rem', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
-        {classesList.map((classe) => (
-          <div 
-            key={classe.name} 
-            className="card clickable-card"
-            onClick={() => goToClassStudents(classe)}
-            style={{ cursor: 'pointer', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
-          >
-            <div className="card-header" style={{ backgroundColor: '#eff6ff' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ 
-                    width: '50px', 
-                    height: '50px', 
-                    borderRadius: '0.5rem', 
-                    backgroundColor: '#3b82f6',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <GraduationCap style={{ width: '24px', height: '24px', color: 'white' }} />
+      <div>
+        {renderTrimestreInfo()}
+        
+        <div style={{ display: 'grid', gap: '1.5rem', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
+          {classesList.map((classe) => (
+            <div 
+              key={classe.name} 
+              className="card clickable-card"
+              onClick={() => goToClassStudents(classe)}
+              style={{ cursor: 'pointer', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+            >
+              <div className="card-header" style={{ backgroundColor: '#eff6ff' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ 
+                      width: '50px', 
+                      height: '50px', 
+                      borderRadius: '0.5rem', 
+                      backgroundColor: '#3b82f6',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <GraduationCap style={{ width: '24px', height: '24px', color: 'white' }} />
+                    </div>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#1e40af' }}>
+                        {classe.name}
+                      </h3>
+                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: '#6b7280' }}>
+                        {classe.totalStudents} étudiant{classe.totalStudents > 1 ? 's' : ''}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#1e40af' }}>
-                      {classe.name}
-                    </h3>
-                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: '#6b7280' }}>
-                      {classe.totalStudents} étudiant{classe.totalStudents > 1 ? 's' : ''}
-                    </p>
-                  </div>
-                </div>
-                <ChevronRight style={{ width: '24px', height: '24px', color: '#3b82f6' }} />
-              </div>
-            </div>
-            
-            <div className="card-body">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280' }}>
-                  <Users style={{ width: '16px', height: '16px' }} />
-                  <span>{classe.totalCorrections} corrections</span>
+                  <ChevronRight style={{ width: '24px', height: '24px', color: '#3b82f6' }} />
                 </div>
               </div>
+              
+              <div className="card-body">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280' }}>
+                    <Users style={{ width: '16px', height: '16px' }} />
+                    <span>{classe.totalCorrections} corrections</span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     );
   };

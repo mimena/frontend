@@ -1223,12 +1223,40 @@ const App = () => {
   };
 
   // Gérer la sauvegarde de la configuration
-  const handleSaveSchoolYearConfig = (config) => {
+// Gérer la sauvegarde de la configuration - SYNCHRONISÉE AVEC FLUTTER
+const handleSaveSchoolYearConfig = async (config) => {
+  try {
+    // 1. Sauvegarder dans Firebase (POUR FLUTTER)
+    const firebaseResponse = await fetch('/api/trimestres/config', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        trimestres: config.trimestres || []
+      }),
+    });
+
+    if (!firebaseResponse.ok) {
+      throw new Error('Erreur synchronisation Firebase');
+    }
+
+    // 2. Sauvegarder dans localStorage (POUR REACT - EXISTANT)
+    setSchoolYearConfig(config);
+    localStorage.setItem('schoolYearConfig', JSON.stringify(config));
+    
+    setShowYearConfig(false);
+    setSuccess('Configuration synchronisée React + Flutter !');
+    
+  } catch (error) {
+    console.error('Erreur synchronisation:', error);
+    // Fallback: sauvegarder seulement dans localStorage
     setSchoolYearConfig(config);
     localStorage.setItem('schoolYearConfig', JSON.stringify(config));
     setShowYearConfig(false);
-    setSuccess('Configuration de l\'année scolaire sauvegardée !');
-  };
+    setSuccess('Configuration sauvegardée (React seulement)');
+  }
+};
 
   const toggleProfileMenu = () => {
     setShowProfileMenu(!showProfileMenu);
