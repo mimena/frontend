@@ -80,16 +80,14 @@ const StudentResults = () => {
         let totalWeightedScore = 0;
         let totalCoefficients = 0;
         
-        // Pour chaque matière, prendre uniquement la DERNIÈRE note
+        // Pour chaque matière, utiliser uniquement la dernière note
         Object.values(student.subjects).forEach(subject => {
           if (subject.scores.length > 0) {
-            // Prendre uniquement la DERNIÈRE note (la plus récente)
+            // La dernière note (la plus récente)
             const lastScore = subject.scores[subject.scores.length - 1];
             subject.average = lastScore;
             subject.lastScore = lastScore;
-            
-            // La note est DÉJÀ sur 20
-            subject.noteOver20 = lastScore;
+            subject.noteOver20 = lastScore; // C'est déjà sur 20
             
             // Calcul avec coefficient
             const weightedScore = lastScore * subject.coefficient;
@@ -98,7 +96,7 @@ const StudentResults = () => {
           }
         });
         
-        // Calcul de la moyenne générale avec les coefficients
+        // Moyenne générale avec coefficients
         student.averageScore = totalCoefficients > 0 ? totalWeightedScore / totalCoefficients : 0;
         student.totalCoefficients = totalCoefficients;
         student.totalWeightedScore = totalWeightedScore;
@@ -130,7 +128,7 @@ const StudentResults = () => {
         classesList[className].totalWeightedScore += totalWeightedScore;
       });
   
-    // Calcul de la moyenne de classe avec coefficients
+    // Moyenne de classe avec coefficients
     Object.values(classesList).forEach(classe => {
       const totalWeights = classe.students.reduce((sum, student) => {
         return sum + student.totalCoefficients;
@@ -138,7 +136,6 @@ const StudentResults = () => {
       
       classe.averageScore = totalWeights > 0 ? classe.totalWeightedScore / totalWeights : 0;
       classe.maxWeightedPoints = classe.totalCoefficients * 20;
-      // Trier les étudiants par nom
       classe.students.sort((a, b) => a.nom.localeCompare(b.nom));
     });
   
@@ -182,17 +179,23 @@ const StudentResults = () => {
         
         // Trier les résultats par date (plus récent en premier)
         const sortedResults = [...results].sort((a, b) => 
-          new Date(b.created_at) - new Date(a.created_at)
+          new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
         );
         
-        // Traiter les résultats triés
+        // Traiter les résultats
         sortedResults.forEach(result => {
           const matricule = result.student_matricule;
-          
           const analysisResult = result.analysis_result || {};
           
-          // Utiliser UNIQUEMENT le score déjà calculé sur 20 (note exacte du mobile)
-          const finalNote = parseFloat(result.score); // Note exacte du mobile
+          // CORRECTION: Utiliser le score qui est DÉJÀ sur 20
+          let finalNote = parseFloat(result.score);
+          
+          // Si le score n'existe pas, essayer de le recalculer
+          if (isNaN(finalNote) || finalNote === 0) {
+            const noteSur20 = parseFloat(analysisResult.note_sur_20);
+            const finalNoteFromAnalysis = parseFloat(analysisResult.final_note);
+            finalNote = finalNoteFromAnalysis || noteSur20 || 0;
+          }
           
           const coefficient = parseFloat(result.subject_coefficient) || 1.0;
           
@@ -223,7 +226,7 @@ const StudentResults = () => {
             };
           }
           
-          // Ajouter la note à la liste (la plus récente sera en dernier)
+          // Ajouter la note (déjà sur 20)
           studentsMap[matricule].subjects[subjectName].scores.push(finalNote);
           studentsMap[matricule].subjects[subjectName].corrections++;
         });
@@ -277,7 +280,6 @@ const StudentResults = () => {
     return '⚠️ À améliorer';
   };
 
-  // Fonctions d'affichage
   const formatScoreSur20 = (score) => {
     if (isNaN(score)) return '—';
     return `${score.toFixed(1)}/20`;
@@ -290,7 +292,7 @@ const StudentResults = () => {
     return `${scoreAvecCoefficient.toFixed(1)}/${maxAvecCoefficient.toFixed(0)}`;
   };
 
-  // ==================== EXPORT CSV ====================
+  // Export CSV
   const exportClassCSV = (classe) => {
     const allSubjectsSet = new Set();
     classe.students.forEach(student => {
@@ -336,7 +338,7 @@ const StudentResults = () => {
       });
     
     csv += `\nMOYENNE GÉNÉRALE,${student.totalCoefficients},${student.averageScore.toFixed(2)}/20,${formatScoreAvecCoefficient(student.averageScore, student.totalCoefficients)}\n`;
-    csv += `APPREACIATION,—,${getAppreciation(student.averageScore)},—\n`;
+    csv += `APPRECIATION,—,${getAppreciation(student.averageScore)},—\n`;
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -345,7 +347,7 @@ const StudentResults = () => {
     link.click();
   };
 
-  // ==================== EXPORT PDF ====================
+  // Export PDF
   const exportClassPDF = (classe) => {
     const allSubjectsSet = new Set();
     classe.students.forEach(student => {
@@ -355,7 +357,6 @@ const StudentResults = () => {
     });
     const allSubjects = Array.from(allSubjectsSet).sort();
 
-    // Calculer les rangs
     const studentsWithRanks = [...classe.students]
       .sort((a, b) => b.averageScore - a.averageScore)
       .map((student, index) => ({
@@ -707,7 +708,7 @@ const StudentResults = () => {
     setSelectedStudent(null);
   };
 
-  // Vue 1: Liste des classes
+  // Render Views
   const renderClassesView = () => {
     if (classesList.length === 0) {
       return (
@@ -787,7 +788,6 @@ const StudentResults = () => {
     );
   };
 
-  // Vue 2: Tableau global des étudiants d'une classe
   const renderClassStudentsView = () => {
     if (!selectedClass) return null;
 
@@ -799,7 +799,6 @@ const StudentResults = () => {
     });
     const allSubjects = Array.from(allSubjectsSet).sort();
 
-    // Calculer les rangs des étudiants
     const studentsWithRanks = [...selectedClass.students]
       .sort((a, b) => b.averageScore - a.averageScore)
       .map((student, index) => ({
@@ -809,7 +808,6 @@ const StudentResults = () => {
 
     return (
       <div>
-        {/* Navigation breadcrumb */}
         <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <button 
             className="btn btn-secondary btn-sm"
@@ -823,7 +821,6 @@ const StudentResults = () => {
           <span style={{ fontWeight: '600', color: '#1f2937' }}>{selectedClass.name}</span>
         </div>
 
-        {/* En-tête de la classe */}
         <div className="card" style={{ marginBottom: '1.5rem' }}>
           <div className="card-header" style={{ backgroundColor: '#eff6ff' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -871,7 +868,6 @@ const StudentResults = () => {
           </div>
         </div>
 
-        {/* Tableau global des étudiants avec matières en colonnes */}
         <div className="card">
           <div className="card-header">
             <h3 className="card-title">
@@ -964,7 +960,6 @@ const StudentResults = () => {
     );
   };
 
-  // Vue 3: Détails d'un étudiant (bulletin complet)
   const renderStudentDetailsView = () => {
     if (!selectedStudent || !selectedClass) return null;
 
@@ -972,7 +967,6 @@ const StudentResults = () => {
 
     return (
       <div>
-        {/* Navigation breadcrumb */}
         <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button 
             className="btn btn-secondary btn-sm"
@@ -993,7 +987,6 @@ const StudentResults = () => {
           <span style={{ fontWeight: '600', color: '#1f2937' }}>{selectedStudent.nom} {selectedStudent.prenom}</span>
         </div>
 
-        {/* En-tête étudiant */}
         <div className="card" style={{ marginBottom: '1.5rem' }}>
           <div className="card-header" style={{ backgroundColor: '#f0f9ff' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -1042,7 +1035,6 @@ const StudentResults = () => {
           </div>
         </div>
 
-        {/* Boutons d'export */}
         <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
           <button 
             className="btn btn-success btn-sm"
@@ -1062,7 +1054,6 @@ const StudentResults = () => {
           </button>
         </div>
 
-        {/* Bulletin détaillé */}
         <div className="card">
           <div className="card-header">
             <h3 className="card-title">
@@ -1184,7 +1175,6 @@ const StudentResults = () => {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', padding: '2rem' }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        {/* En-tête principal */}
         <div style={{ marginBottom: '2rem' }}>
           <h1 style={{ margin: 0, fontSize: '2.5rem', color: '#1f2937', fontWeight: 'bold' }}>
             📚 Système de Gestion des Résultats
@@ -1194,7 +1184,6 @@ const StudentResults = () => {
           </p>
         </div>
 
-        {/* Bouton actualiser (uniquement sur la page des classes) */}
         {currentView === 'classes' && (
           <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
             <button 
@@ -1208,7 +1197,6 @@ const StudentResults = () => {
           </div>
         )}
 
-        {/* Contenu principal selon la vue */}
         {loading ? (
           <div className="card">
             <div className="card-body">
@@ -1246,7 +1234,6 @@ const StudentResults = () => {
           </>
         )}
 
-        {/* Styles CSS */}
         <style>
           {`
             @keyframes spin {
@@ -1340,19 +1327,6 @@ const StudentResults = () => {
             .btn-sm {
               padding: 0.375rem 0.75rem;
               font-size: 0.875rem;
-            }
-            
-            .badge {
-              padding: 0.25rem 0.75rem;
-              border-radius: 9999px;
-              font-size: 0.75rem;
-              font-weight: 600;
-              text-transform: uppercase;
-            }
-            
-            .badge-info {
-              background-color: #dbeafe;
-              color: #1d4ed8;
             }
             
             .table-responsive {
