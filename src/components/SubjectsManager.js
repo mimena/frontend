@@ -1,6 +1,62 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Plus, Edit2, Trash2, Save, X, AlertCircle, CheckCircle, Wifi, WifiOff, Send, Mail, Award, TrendingUp, Users } from 'lucide-react';
 
+// ===== FONCTIONS UTILITAIRES POUR L'EXPIRATION =====
+const getCurrentTrimestre = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  
+  // Définition des trimestres (à adapter selon votre calendrier scolaire)
+  const trimestres = [
+    { numero: 1, dateFin: { month: 11, day: 15 } }, // 15 décembre
+    { numero: 2, dateFin: { month: 2, day: 15 } },  // 15 mars
+    { numero: 3, dateFin: { month: 5, day: 30 } }   // 30 juin
+  ];
+  
+  return trimestres.find(trimestre => {
+    const fin = new Date(year, trimestre.dateFin.month, trimestre.dateFin.day);
+    return now <= fin;
+  }) || trimestres[2]; // Par défaut, dernier trimestre
+};
+
+const getSubjectExpirationStatus = (subject) => {
+  const currentTrimestre = getCurrentTrimestre();
+  
+  if (!currentTrimestre) {
+    return { expired: false, message: "Trimestre non défini" };
+  }
+  
+  const now = new Date();
+  const finTrimestre = new Date(now.getFullYear(), currentTrimestre.dateFin.month, currentTrimestre.dateFin.day);
+  
+  const isExpired = now > finTrimestre;
+  
+  if (isExpired) {
+    return {
+      expired: true,
+      message: `Expiré - Trimestre ${currentTrimestre.numero} terminé`,
+      trimestre: `Trimestre ${currentTrimestre.numero}`
+    };
+  }
+  
+  // Calcul des jours restants
+  const joursRestants = Math.ceil((finTrimestre - now) / (1000 * 60 * 60 * 24));
+  
+  if (joursRestants <= 7) {
+    return {
+      expired: false,
+      message: `Expire dans ${joursRestants} jour(s)`,
+      trimestre: `Trimestre ${currentTrimestre.numero}`
+    };
+  }
+  
+  return {
+    expired: false,
+    message: `Valide - Trimestre ${currentTrimestre.numero}`,
+    trimestre: `Trimestre ${currentTrimestre.numero}`
+  };
+};
+
 // ===== MODAL ENVOI CODE PAR EMAIL =====
 const SendCodeModal = ({ 
   subject, 
@@ -1360,172 +1416,197 @@ const SubjectsManager = ({
                 </td>
               </tr>
             ) : (
-              subjects.map(subject => (
-                <tr key={subject.id} className="table-row" style={{
-                  borderBottom: '1px solid #e5e7eb'
-                }}>
-                  <td className="table-cell" style={{ padding: '0.75rem' }}>
-                    <div>
-                      <div className="table-cell-primary" style={{
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        color: '#1f2937'
-                      }}>
-                        {subject.name}
-                      </div>
-                      {subject.description && (
-                        <div style={{
-                          fontSize: '0.75rem',
-                          color: '#6b7280',
-                          marginTop: '0.25rem'
+              subjects.map(subject => {
+                const expirationStatus = getSubjectExpirationStatus(subject);
+                
+                return (
+                  <tr key={subject.id} className="table-row" style={{
+                    borderBottom: '1px solid #e5e7eb'
+                  }}>
+                    <td className="table-cell" style={{ padding: '0.75rem' }}>
+                      <div>
+                        <div className="table-cell-primary" style={{
+                          fontSize: '0.875rem',
+                          fontWeight: '500',
+                          color: '#1f2937'
                         }}>
-                          {subject.description}
+                          {subject.name}
+                          {expirationStatus.expired && (
+                            <span style={{
+                              marginLeft: '0.5rem',
+                              padding: '0.25rem 0.5rem',
+                              backgroundColor: '#fef2f2',
+                              color: '#dc2626',
+                              fontSize: '0.7rem',
+                              fontWeight: '600',
+                              borderRadius: '0.375rem',
+                              border: '1px solid #fecaca'
+                            }}>
+                              ⚠️ Expiré
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="table-cell" style={{ padding: '0.75rem' }}>
-                    <span className="badge badge-primary" style={{
-                      display: 'inline-block',
-                      padding: '0.25rem 0.5rem',
-                      backgroundColor: '#dbeafe',
-                      color: '#1e40af',
-                      fontSize: '0.75rem',
-                      fontWeight: '500',
-                      borderRadius: '0.375rem'
-                    }}>
-                      {subject.code}
-                    </span>
-                  </td>
-                  <td className="table-cell" style={{ padding: '0.75rem' }}>
-                    {subject.class ? (
-                      <span className="badge badge-class" style={{
+                        {subject.description && (
+                          <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                            {subject.description}
+                          </div>
+                        )}
+                        {/* AJOUT: Statut d'expiration */}
+                        <div style={{ 
+                          fontSize: '0.7rem', 
+                          color: expirationStatus.expired ? '#dc2626' : '#059669',
+                          marginTop: '0.25rem',
+                          fontWeight: '500'
+                        }}>
+                          {expirationStatus.message}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="table-cell" style={{ padding: '0.75rem' }}>
+                      <span className="badge badge-primary" style={{
                         display: 'inline-block',
                         padding: '0.25rem 0.5rem',
-                        backgroundColor: '#f0fdf4',
-                        color: '#166534',
+                        backgroundColor: '#dbeafe',
+                        color: '#1e40af',
                         fontSize: '0.75rem',
                         fontWeight: '500',
-                        borderRadius: '0.375rem',
-                        border: '1px solid #bbf7d0'
+                        borderRadius: '0.375rem'
                       }}>
-                        <Users style={{ width: '12px', height: '12px', marginRight: '0.25rem', display: 'inline' }} />
-                        {subject.class}
+                        {subject.code}
                       </span>
-                    ) : (
-                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontStyle: 'italic' }}>
-                        Non assigné
+                    </td>
+                    <td className="table-cell" style={{ padding: '0.75rem' }}>
+                      {subject.class ? (
+                        <span className="badge badge-class" style={{
+                          display: 'inline-block',
+                          padding: '0.25rem 0.5rem',
+                          backgroundColor: '#f0fdf4',
+                          color: '#166534',
+                          fontSize: '0.75rem',
+                          fontWeight: '500',
+                          borderRadius: '0.375rem',
+                          border: '1px solid #bbf7d0'
+                        }}>
+                          <Users style={{ width: '12px', height: '12px', marginRight: '0.25rem', display: 'inline' }} />
+                          {subject.class}
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontStyle: 'italic' }}>
+                          Non assigné
+                        </span>
+                      )}
+                    </td>
+                    <td className="table-cell text-center" style={{
+                      padding: '0.75rem',
+                      textAlign: 'center'
+                    }}>
+                      <span className="coefficient-badge" style={{
+                        display: 'inline-block',
+                        width: '24px',
+                        height: '24px',
+                        backgroundColor: '#10b981',
+                        color: 'white',
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto'
+                      }}>
+                        {subject.coefficient}
                       </span>
-                    )}
-                  </td>
-                  <td className="table-cell text-center" style={{
-                    padding: '0.75rem',
-                    textAlign: 'center'
-                  }}>
-                    <span className="coefficient-badge" style={{
-                      display: 'inline-block',
-                      width: '24px',
-                      height: '24px',
-                      backgroundColor: '#10b981',
-                      color: 'white',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto'
+                    </td>
+                    <td className="table-cell text-center" style={{
+                      padding: '0.75rem',
+                      textAlign: 'center'
                     }}>
-                      {subject.coefficient}
-                    </span>
-                  </td>
-                  <td className="table-cell text-center" style={{
-                    padding: '0.75rem',
-                    textAlign: 'center'
-                  }}>
-                    <div className="action-buttons" style={{
-                      display: 'flex',
-                      gap: '0.5rem',
-                      justifyContent: 'center'
-                    }}>
-                      {/* Bouton Envoyer Email */}
-                      <button 
-                        onClick={() => handleSendCode(subject)}
-                        disabled={isOffline}
-                        className="btn-icon btn-send"
-                        title="Envoyer le code par email"
-                        style={{
-                          padding: '0.5rem',
-                          border: '1px solid #93c5fd',
-                          borderRadius: '4px',
-                          backgroundColor: isOffline ? 'white' : '#dbeafe',
-                          color: isOffline ? '#9ca3af' : '#2563eb',
-                          cursor: isOffline ? 'not-allowed' : 'pointer',
-                          opacity: isOffline ? 0.5 : 1,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        <Send style={{ width: '14px', height: '14px' }} />
-                      </button>
+                      <div className="action-buttons" style={{
+                        display: 'flex',
+                        gap: '0.5rem',
+                        justifyContent: 'center'
+                      }}>
+                        {/* Bouton Envoyer Email - DÉSACTIVÉ si expiré */}
+                        <button 
+                          onClick={() => handleSendCode(subject)}
+                          disabled={isOffline || expirationStatus.expired}
+                          className="btn-icon btn-send"
+                          title={expirationStatus.expired ? 
+                            `Code expiré pour ${expirationStatus.trimestre}` : 
+                            "Envoyer le code par email"}
+                          style={{
+                            padding: '0.5rem',
+                            border: '1px solid #93c5fd',
+                            borderRadius: '4px',
+                            backgroundColor: isOffline || expirationStatus.expired ? 'white' : '#dbeafe',
+                            color: isOffline || expirationStatus.expired ? '#9ca3af' : '#2563eb',
+                            cursor: (isOffline || expirationStatus.expired) ? 'not-allowed' : 'pointer',
+                            opacity: (isOffline || expirationStatus.expired) ? 0.5 : 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <Send style={{ width: '14px', height: '14px' }} />
+                        </button>
 
-                      <button 
-                        onClick={() => handleEdit(subject)}
-                        disabled={isOffline}
-                        className="btn-icon btn-edit"
-                        title="Modifier"
-                        style={{
-                          padding: '0.5rem',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '4px',
-                          backgroundColor: 'white',
-                          color: isOffline ? '#9ca3af' : '#3b82f6',
-                          cursor: isOffline ? 'not-allowed' : 'pointer',
-                          opacity: isOffline ? 0.5 : 1,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        <Edit2 style={{ width: '14px', height: '14px' }} />
-                      </button>
-                      
-                      <button 
-                        onClick={() => handleDelete(subject)}
-                        disabled={isOffline || deletingId === subject.id}
-                        className="btn-icon btn-delete"
-                        title="Supprimer"
-                        style={{
-                          padding: '0.5rem',
-                          border: '1px solid #fca5a5',
-                          borderRadius: '4px',
-                          backgroundColor: (deletingId === subject.id) ? '#fca5a5' : 'white',
-                          color: isOffline ? '#9ca3af' : '#dc2626',
-                          cursor: (isOffline || deletingId === subject.id) ? 'not-allowed' : 'pointer',
-                          opacity: (isOffline || deletingId === subject.id) ? 0.5 : 1,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        {deletingId === subject.id ? (
-                          <div style={{
-                            width: '14px',
-                            height: '14px',
-                            border: '2px solid rgba(220,38,38,0.3)',
-                            borderTop: '2px solid #dc2626',
-                            borderRadius: '50%',
-                            animation: 'spin 1s linear infinite'
-                          }} />
-                        ) : (
-                          <Trash2 style={{ width: '14px', height: '14px' }} />
-                        )}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                        <button 
+                          onClick={() => handleEdit(subject)}
+                          disabled={isOffline}
+                          className="btn-icon btn-edit"
+                          title="Modifier"
+                          style={{
+                            padding: '0.5rem',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '4px',
+                            backgroundColor: 'white',
+                            color: isOffline ? '#9ca3af' : '#3b82f6',
+                            cursor: isOffline ? 'not-allowed' : 'pointer',
+                            opacity: isOffline ? 0.5 : 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <Edit2 style={{ width: '14px', height: '14px' }} />
+                        </button>
+                        
+                        <button 
+                          onClick={() => handleDelete(subject)}
+                          disabled={isOffline || deletingId === subject.id}
+                          className="btn-icon btn-delete"
+                          title="Supprimer"
+                          style={{
+                            padding: '0.5rem',
+                            border: '1px solid #fca5a5',
+                            borderRadius: '4px',
+                            backgroundColor: (deletingId === subject.id) ? '#fca5a5' : 'white',
+                            color: isOffline ? '#9ca3af' : '#dc2626',
+                            cursor: (isOffline || deletingId === subject.id) ? 'not-allowed' : 'pointer',
+                            opacity: (isOffline || deletingId === subject.id) ? 0.5 : 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          {deletingId === subject.id ? (
+                            <div style={{
+                              width: '14px',
+                              height: '14px',
+                              border: '2px solid rgba(220,38,38,0.3)',
+                              borderTop: '2px solid #dc2626',
+                              borderRadius: '50%',
+                              animation: 'spin 1s linear infinite'
+                            }} />
+                          ) : (
+                            <Trash2 style={{ width: '14px', height: '14px' }} />
+                          )}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

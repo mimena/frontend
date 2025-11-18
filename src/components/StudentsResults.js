@@ -55,7 +55,31 @@ const apiService = {
     return await this.request('/results');
   }
 };
+// Récupérer le trimestre actuel depuis la config
+const currentTrimestre = getCurrentTrimestre(); // Passé en prop depuis App.js
 
+// Dans le JSX, en haut de la page :
+<div style={{ marginBottom: '1.5rem' }}>
+  <div style={{
+    padding: '1rem',
+    backgroundColor: '#eff6ff',
+    borderRadius: '8px',
+    border: '1px solid #bfdbfe',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem'
+  }}>
+    <Calendar style={{ width: '20px', height: '20px', color: '#2563eb' }} />
+    <div>
+      <div style={{ fontWeight: '600', color: '#1e40af', fontSize: '0.875rem' }}>
+        {currentTrimestre?.nom || 'Trimestre non défini'}
+      </div>
+      <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+        Résultats affichés pour ce trimestre
+      </div>
+    </div>
+  </div>
+</div>
 const StudentResults = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
