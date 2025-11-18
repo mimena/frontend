@@ -118,9 +118,7 @@ const SchoolYearConfig = ({ darkMode, onSave, onCancel, currentConfig }) => {
     startMonth: 8, // Septembre (0-11)
     startDay: 1,
     endMonth: 6,   // Juillet (0-11)
-    endDay: 31,
-    // MODIFICATION : Trimestres vides par défaut
-    trimestres: []
+    endDay: 31
   });
 
   const theme = {
@@ -141,28 +139,6 @@ const SchoolYearConfig = ({ darkMode, onSave, onCancel, currentConfig }) => {
 
   const handleSave = () => {
     onSave(config);
-  };
-
-  // Fonction pour ajouter un trimestre
-  const addTrimestre = () => {
-    const newTrimestre = {
-      nom: `Trimestre ${config.trimestres.length + 1}`,
-      dateDebut: { month: 0, day: 1 },
-      dateFin: { month: 2, day: 31 }
-    };
-    setConfig({
-      ...config,
-      trimestres: [...config.trimestres, newTrimestre]
-    });
-  };
-
-  // Fonction pour supprimer un trimestre
-  const removeTrimestre = (index) => {
-    const newTrimestres = config.trimestres.filter((_, i) => i !== index);
-    setConfig({
-      ...config,
-      trimestres: newTrimestres
-    });
   };
 
   return (
@@ -346,203 +322,6 @@ const SchoolYearConfig = ({ darkMode, onSave, onCancel, currentConfig }) => {
               </div>
             </div>
 
-            {/* AJOUT: Section Trimestres */}
-            <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: `1px solid ${theme.border}` }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h4 style={{ fontSize: '1rem', fontWeight: '600', color: theme.text.primary }}>
-                  📊 Configuration des Trimestres
-                </h4>
-                <button
-                  onClick={addTrimestre}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    borderRadius: '6px',
-                    border: 'none',
-                    backgroundColor: '#10b981',
-                    color: 'white',
-                    fontSize: '0.75rem',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem'
-                  }}
-                >
-                  <span>+</span>
-                  Ajouter un trimestre
-                </button>
-              </div>
-              
-              {config.trimestres.length === 0 ? (
-                <div style={{
-                  padding: '2rem',
-                  textAlign: 'center',
-                  backgroundColor: darkMode ? 'rgba(107, 114, 128, 0.1)' : 'rgba(107, 114, 128, 0.05)',
-                  borderRadius: '8px',
-                  border: `1px dashed ${theme.border}`
-                }}>
-                  <p style={{ fontSize: '0.875rem', color: theme.text.secondary, margin: 0 }}>
-                    Aucun trimestre configuré. Cliquez sur "Ajouter un trimestre" pour commencer.
-                  </p>
-                </div>
-              ) : (
-                config.trimestres.map((trimestre, index) => (
-                  <div key={index} style={{ 
-                    marginBottom: '1.5rem', 
-                    padding: '1rem', 
-                    backgroundColor: darkMode ? 'rgba(139, 92, 246, 0.05)' : 'rgba(139, 92, 246, 0.03)',
-                    borderRadius: '8px',
-                    border: `1px solid ${darkMode ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)'}`
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                      <h5 style={{ fontSize: '0.875rem', fontWeight: '600', color: theme.text.primary, margin: 0 }}>
-                        {trimestre.nom}
-                      </h5>
-                      <button
-                        onClick={() => removeTrimestre(index)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#ef4444',
-                          cursor: 'pointer',
-                          padding: '0.25rem',
-                          borderRadius: '0.25rem'
-                        }}
-                      >
-                        <X style={{ width: '16px', height: '16px' }} />
-                      </button>
-                    </div>
-                    
-                    <div style={{ marginBottom: '0.75rem' }}>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '500', color: theme.text.secondary, marginBottom: '0.5rem' }}>
-                        Nom du trimestre
-                      </label>
-                      <input
-                        type="text"
-                        value={trimestre.nom}
-                        onChange={(e) => {
-                          const newTrimestres = [...config.trimestres];
-                          newTrimestres[index].nom = e.target.value;
-                          setConfig({ ...config, trimestres: newTrimestres });
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem',
-                          borderRadius: '6px',
-                          border: `1px solid ${theme.border}`,
-                          backgroundColor: theme.bg.tertiary,
-                          color: theme.text.primary,
-                          fontSize: '0.75rem',
-                          outline: 'none'
-                        }}
-                        placeholder="Ex: 1er Trimestre"
-                      />
-                    </div>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                      {/* Début du trimestre */}
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '500', color: theme.text.secondary, marginBottom: '0.5rem' }}>
-                          Date de début
-                        </label>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                          <select
-                            value={trimestre.dateDebut.month}
-                            onChange={(e) => {
-                              const newTrimestres = [...config.trimestres];
-                              newTrimestres[index].dateDebut.month = parseInt(e.target.value);
-                              setConfig({ ...config, trimestres: newTrimestres });
-                            }}
-                            style={{
-                              padding: '0.5rem',
-                              borderRadius: '6px',
-                              border: `1px solid ${theme.border}`,
-                              backgroundColor: theme.bg.tertiary,
-                              color: theme.text.primary,
-                              fontSize: '0.75rem'
-                            }}
-                          >
-                            {months.map((month, idx) => (
-                              <option key={idx} value={idx}>{month}</option>
-                            ))}
-                          </select>
-                          <select
-                            value={trimestre.dateDebut.day}
-                            onChange={(e) => {
-                              const newTrimestres = [...config.trimestres];
-                              newTrimestres[index].dateDebut.day = parseInt(e.target.value);
-                              setConfig({ ...config, trimestres: newTrimestres });
-                            }}
-                            style={{
-                              padding: '0.5rem',
-                              borderRadius: '6px',
-                              border: `1px solid ${theme.border}`,
-                              backgroundColor: theme.bg.tertiary,
-                              color: theme.text.primary,
-                              fontSize: '0.75rem'
-                            }}
-                          >
-                            {Array.from({ length: getDaysInMonth(trimestre.dateDebut.month) }, (_, i) => i + 1).map(day => (
-                              <option key={day} value={day}>{day}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      
-                      {/* Fin du trimestre */}
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '500', color: theme.text.secondary, marginBottom: '0.5rem' }}>
-                          Date de fin
-                        </label>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                          <select
-                            value={trimestre.dateFin.month}
-                            onChange={(e) => {
-                              const newTrimestres = [...config.trimestres];
-                              newTrimestres[index].dateFin.month = parseInt(e.target.value);
-                              setConfig({ ...config, trimestres: newTrimestres });
-                            }}
-                            style={{
-                              padding: '0.5rem',
-                              borderRadius: '6px',
-                              border: `1px solid ${theme.border}`,
-                              backgroundColor: theme.bg.tertiary,
-                              color: theme.text.primary,
-                              fontSize: '0.75rem'
-                            }}
-                          >
-                            {months.map((month, idx) => (
-                              <option key={idx} value={idx}>{month}</option>
-                            ))}
-                          </select>
-                          <select
-                            value={trimestre.dateFin.day}
-                            onChange={(e) => {
-                              const newTrimestres = [...config.trimestres];
-                              newTrimestres[index].dateFin.day = parseInt(e.target.value);
-                              setConfig({ ...config, trimestres: newTrimestres });
-                            }}
-                            style={{
-                              padding: '0.5rem',
-                              borderRadius: '6px',
-                              border: `1px solid ${theme.border}`,
-                              backgroundColor: theme.bg.tertiary,
-                              color: theme.text.primary,
-                              fontSize: '0.75rem'
-                            }}
-                          >
-                            {Array.from({ length: getDaysInMonth(trimestre.dateFin.month) }, (_, i) => i + 1).map(day => (
-                              <option key={day} value={day}>{day}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-
             {/* Aperçu */}
             <div style={{
               padding: '1rem',
@@ -557,18 +336,6 @@ const SchoolYearConfig = ({ darkMode, onSave, onCancel, currentConfig }) => {
                 L'année scolaire commence le <strong>{config.startDay} {months[config.startMonth]}</strong><br/>
                 et se termine le <strong>{config.endDay} {months[config.endMonth]}</strong>
               </p>
-              {config.trimestres.length > 0 && (
-                <div style={{ marginTop: '0.5rem' }}>
-                  <p style={{ fontSize: '0.75rem', color: theme.text.secondary, margin: '0.25rem 0' }}>
-                    <strong>Trimestres configurés :</strong>
-                  </p>
-                  {config.trimestres.map((trimestre, index) => (
-                    <p key={index} style={{ fontSize: '0.7rem', color: theme.text.secondary, margin: '0.1rem 0' }}>
-                      • {trimestre.nom} : du {trimestre.dateDebut.day} {months[trimestre.dateDebut.month]} au {trimestre.dateFin.day} {months[trimestre.dateFin.month]}
-                    </p>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
 
@@ -1019,131 +786,13 @@ const App = () => {
   const [schoolYearConfig, setSchoolYearConfig] = useState(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  // Date actuelle formatée
-  const currentDate = new Date().toLocaleDateString('fr-FR', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  });
-
-  // AJOUT: Fonctions pour gérer les trimestres et l'expiration des codes
-  // Fonction pour obtenir le trimestre actuel basé sur la configuration
-  const getCurrentTrimestre = () => {
-    if (!schoolYearConfig?.trimestres) return null;
-    
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentDay = now.getDate();
-    
-    for (const trimestre of schoolYearConfig.trimestres) {
-      const debut = new Date(now.getFullYear(), trimestre.dateDebut.month, trimestre.dateDebut.day);
-      const fin = new Date(now.getFullYear(), trimestre.dateFin.month, trimestre.dateFin.day);
-      
-      // Ajuster l'année pour les trimestres qui chevauchent deux années
-      if (trimestre.dateFin.month < trimestre.dateDebut.month) {
-        if (currentMonth >= trimestre.dateDebut.month) {
-          fin.setFullYear(now.getFullYear() + 1);
-        } else {
-          debut.setFullYear(now.getFullYear() - 1);
-        }
-      }
-      
-      if (now >= debut && now <= fin) {
-        return trimestre;
-      }
-    }
-    
-    return null;
-  };
-
-  // Vérifier si un code de matière est expiré pour un trimestre donné
-  const isCodeExpired = (subject, trimestreNom) => {
-    if (!schoolYearConfig?.trimestres || !trimestreNom) return false;
-    
-    const now = new Date();
-    
-    // Trouver le trimestre dans la configuration
-    const trimestreConfig = schoolYearConfig.trimestres.find(t => t.nom === trimestreNom);
-    if (!trimestreConfig) return false;
-    
-    // Créer la date de fin du trimestre
-    const finTrimestre = new Date(now.getFullYear(), trimestreConfig.dateFin.month, trimestreConfig.dateFin.day);
-    
-    // Ajuster l'année si le trimestre chevauche deux années
-    if (trimestreConfig.dateFin.month < trimestreConfig.dateDebut.month) {
-      finTrimestre.setFullYear(now.getFullYear() + 1);
-    }
-    
-    // Le code expire si on est après la fin du trimestre
-    return now > finTrimestre;
-  };
-
-  // Obtenir le statut d'expiration d'une matière
-  const getSubjectExpirationStatus = (subject) => {
-    const currentTrimestre = getCurrentTrimestre();
-    
-    if (!currentTrimestre) {
-      return { expired: false, message: 'Trimestre non configuré' };
-    }
-    
-    const expired = isCodeExpired(subject, currentTrimestre.nom);
-    
-    if (expired) {
-      return { 
-        expired: true, 
-        message: `Code expiré - ${currentTrimestre.nom} terminé`,
-        trimestre: currentTrimestre.nom
-      };
-    }
-    
-    return { 
-      expired: false, 
-      message: `Valide pour ${currentTrimestre.nom}`,
-      trimestre: currentTrimestre.nom
-    };
-  };
-
-  // Dans App.js - AJOUTER à la fin du composant App
-  // Exposer les fonctions globalement pour les composants enfants
+  // Charger la configuration depuis le localStorage
   useEffect(() => {
-    window.getCurrentTrimestre = getCurrentTrimestre;
-    window.isCodeExpired = isCodeExpired;
-    window.getSubjectExpirationStatus = getSubjectExpirationStatus;
-  }, [schoolYearConfig]);
-
-  // Nettoyer à la destruction
-  useEffect(() => {
-    return () => {
-      delete window.getCurrentTrimestre;
-      delete window.isCodeExpired;
-      delete window.getSubjectExpirationStatus;
-    };
+    const savedConfig = localStorage.getItem('schoolYearConfig');
+    if (savedConfig) {
+      setSchoolYearConfig(JSON.parse(savedConfig));
+    }
   }, []);
-
-// Charger la configuration depuis Firebase (avec fallback localStorage)
-useEffect(() => {
-  const loadConfig = async () => {
-    try {
-      const response = await fetch('https://scolaire.onrender.com/api/trimestres/config');
-      const data = await response.json();
-      
-      if (data.success && data.config) {
-        setSchoolYearConfig(data.config);
-        localStorage.setItem('schoolYearConfig', JSON.stringify(data.config));
-        console.log('✅ Config chargée depuis Firebase');
-      }
-    } catch (error) {
-      console.warn('⚠️ Firebase inaccessible, utilisation du cache local');
-      const savedConfig = localStorage.getItem('schoolYearConfig');
-      if (savedConfig) {
-        setSchoolYearConfig(JSON.parse(savedConfig));
-      }
-    }
-  };
-  
-  loadConfig();
-}, []);
 
   // Gérer le clic en dehors du menu profil
   useEffect(() => {
@@ -1239,67 +888,12 @@ useEffect(() => {
   };
 
   // Gérer la sauvegarde de la configuration
-// Gérer la sauvegarde de la configuration - SYNCHRONISÉE AVEC FLUTTER
-const handleSaveSchoolYearConfig = async (config) => {
-  console.log('🔵 [DEBUG] Début sauvegarde configuration:', config);
-  
-  try {
-    const payload = {
-      trimestres: config.trimestres || []
-    };
-    
-    console.log('🔵 [DEBUG] Payload à envoyer:', JSON.stringify(payload, null, 2));
-    
-    const apiUrl = 'https://scolaire.onrender.com/api/trimestres/config';
-    console.log('🔵 [DEBUG] URL API:', apiUrl);
-    
-    // 1. Sauvegarder dans Firebase
-    const firebaseResponse = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    console.log('🔵 [DEBUG] Status HTTP:', firebaseResponse.status);
-    const responseText = await firebaseResponse.text();
-    console.log('🔵 [DEBUG] Réponse brute:', responseText);
-
-    if (!firebaseResponse.ok) {
-      throw new Error(`Erreur HTTP ${firebaseResponse.status}: ${responseText}`);
-    }
-
-    const responseData = JSON.parse(responseText);
-    console.log('🔵 [DEBUG] Réponse JSON:', responseData);
-
-    // 2. RE-CHARGER depuis Firebase pour vérifier la synchronisation
-    const verifyResponse = await fetch(apiUrl);
-    const verifyData = await verifyResponse.json();
-    console.log('🔵 [DEBUG] Vérification:', verifyData);
-    
-    if (verifyData.success && verifyData.config) {
-      // 3. Mettre à jour React avec les données vérifiées
-      setSchoolYearConfig(verifyData.config);
-      localStorage.setItem('schoolYearConfig', JSON.stringify(verifyData.config));
-      
-      setShowYearConfig(false);
-      setSuccess(`✅ Configuration synchronisée React + Flutter ! (${verifyData.config.trimestres?.length || 0} trimestres)`);
-    } else {
-      throw new Error('Vérification échouée');
-    }
-    
-  } catch (error) {
-    console.error('❌ [DEBUG] Erreur synchronisation:', error);
-    console.error('❌ [DEBUG] Stack trace:', error.stack);
-    
-    // Fallback: sauvegarder seulement dans localStorage
+  const handleSaveSchoolYearConfig = (config) => {
     setSchoolYearConfig(config);
     localStorage.setItem('schoolYearConfig', JSON.stringify(config));
     setShowYearConfig(false);
-    setError(`⚠️ Config sauvegardée localement uniquement: ${error.message}`);
-  }
-};
+    setSuccess('Configuration de l\'année scolaire sauvegardée !');
+  };
 
   const toggleProfileMenu = () => {
     setShowProfileMenu(!showProfileMenu);
@@ -1418,7 +1012,7 @@ return () => { if (monitorId) clearInterval(monitorId); };
       setError(`Erreur lors du chargement des données pour ${year}`);
     }
   };
-  
+
   const loadAllData = async () => {
     // Si c'est une année future, on ne charge rien
     if (isFutureYear(selectedYear)) {
@@ -1744,7 +1338,7 @@ return () => { if (monitorId) clearInterval(monitorId); };
       setLoading(false);
     }
   };
- 
+
   const handleDeleteTeacher = async (teacherId) => {
     if (!canEdit()) {
       setError('Modification non autorisée pour les années antérieures ou futures');
@@ -1913,6 +1507,8 @@ return () => { if (monitorId) clearInterval(monitorId); };
     }
   ];
 
+  const currentDate = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
   const theme = {
     bg: { primary: darkMode ? '#1a1a1a' : '#f8fafc', secondary: darkMode ? '#2d2d2d' : '#ffffff', tertiary: darkMode ? '#3a3a3a' : '#f9fafb', card: darkMode ? '#2d2d2d' : '#ffffff' },
     text: { primary: darkMode ? '#f9fafb' : '#1f2937', secondary: darkMode ? '#d1d5db' : '#6b7280', tertiary: darkMode ? '#9ca3af' : '#9ca3af' },
@@ -1969,45 +1565,16 @@ return () => { if (monitorId) clearInterval(monitorId); };
                     {apiStatus === 'connected' ? <Wifi style={{ width: '12px', height: '12px' }} /> : <WifiOff style={{ width: '12px', height: '12px' }} />}
                     {apiStatus === 'connected' ? 'En ligne' : 'Hors ligne'}
                   </div>
-                  
-                  {/* Badges année scolaire et date actuelle */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {/* Badge année scolaire existant */}
-                    {selectedYear && (
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '0.25rem', 
-                        padding: '0.25rem 0.5rem', 
-                        borderRadius: '0.375rem', 
-                        fontSize: '0.75rem', 
-                        fontWeight: '500', 
-                        backgroundColor: isPastYear(selectedYear) ? '#e5e7eb' : 
-                                        isFutureYear(selectedYear) ? '#fef3c7' : '#d1fae5', 
-                        color: isPastYear(selectedYear) ? '#374151' : 
-                              isFutureYear(selectedYear) ? '#92400e' : '#065f46' 
-                      }}>
-                        <Calendar style={{ width: '12px', height: '12px' }} />
-                        {selectedYear} • {isPastYear(selectedYear) ? 'Consultation' : isFutureYear(selectedYear) ? 'Données vides' : 'Édition'}
-                      </div>
-                    )}
-                    
-                    {/* Badge de date actuelle */}
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '0.25rem', 
-                      padding: '0.25rem 0.5rem', 
-                      borderRadius: '0.375rem', 
-                      fontSize: '0.75rem', 
-                      fontWeight: '500', 
-                      backgroundColor: '#eff6ff', 
-                      color: '#1e40af' 
-                    }}>
+                  {selectedYear && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', borderRadius: '0.375rem', fontSize: '0.75rem', fontWeight: '500', 
+                      backgroundColor: isPastYear(selectedYear) ? '#e5e7eb' : 
+                                      isFutureYear(selectedYear) ? '#fef3c7' : '#d1fae5', 
+                      color: isPastYear(selectedYear) ? '#374151' : 
+                             isFutureYear(selectedYear) ? '#92400e' : '#065f46' }}>
                       <Calendar style={{ width: '12px', height: '12px' }} />
-                      {currentDate}
+                      {selectedYear} • {isPastYear(selectedYear) ? 'Consultation' : isFutureYear(selectedYear) ? 'Données vides' : 'Édition'}
                     </div>
-                  </div>
+                  )}
                 </div>
                 <p style={{ fontSize: '0.875rem', color: theme.text.secondary, margin: 0 }}>
                   Système de Gestion Scolaire • {selectedYear ? `Année ${selectedYear}` : 'Sélectionnez une année'}
@@ -2409,23 +1976,23 @@ return () => { if (monitorId) clearInterval(monitorId); };
         .btn {
           display: inline-flex;
           align-items: center;
-          padding: '0.5rem 1rem';
-          borderRadius: '0.375rem';
-          fontSize: '0.875rem';
+          padding: 0.5rem 1rem;
+          borderRadius: 0.375rem;
+          fontSize: 0.875rem;
           fontWeight: '500';
-          textDecoration: 'none';
-          cursor: 'pointer';
-          transition: 'all 0.2s ease-in-out';
-          border: '1px solid transparent';
+          textDecoration: none;
+          cursor: pointer;
+          transition: all 0.2s ease-in-out;
+          border: 1px solid transparent;
         }
         .btn-primary {
-          backgroundColor: '#3b82f6';
-          color: 'white';
-          borderColor: '#3b82f6';
+          backgroundColor: #3b82f6;
+          color: white;
+          borderColor: #3b82f6;
         }
         .btn-primary:hover:not(:disabled) {
-          backgroundColor: '#2563eb';
-          borderColor: '#2563eb';
+          backgroundColor: #2563eb;
+          borderColor: #2563eb;
         }
         .btn-outline {
           backgroundColor: ${darkMode ? '#2d2d2d' : 'transparent'};
@@ -2437,23 +2004,23 @@ return () => { if (monitorId) clearInterval(monitorId); };
           color: ${darkMode ? '#f9fafb' : '#374151'};
         }
         .btn-secondary {
-          backgroundColor: '#6b7280';
-          color: 'white';
-          borderColor: '#6b7280';
+          backgroundColor: #6b7280;
+          color: white;
+          borderColor: #6b7280;
         }
         .btn-secondary:hover:not(:disabled) {
-          backgroundColor: '#4b5563';
-          borderColor: '#4b5563';
+          backgroundColor: #4b5563;
+          borderColor: #4b5563;
         }
         .btn:disabled {
           opacity: 0.5;
-          cursor: 'not-allowed';
+          cursor: not-allowed;
         }
         .card {
           backgroundColor: ${theme.bg.card};
-          borderRadius: '0.5rem';
+          borderRadius: 0.5rem;
           boxShadow: ${theme.shadow};
-          border: '1px solid ${theme.border}';
+          border: 1px solid ${theme.border};
         }
       `}</style>
     </div>

@@ -26,8 +26,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
   const [selectedSubject, setSelectedSubject] = useState('');
   const [historicalData, setHistoricalData] = useState({});
   const [availableYears, setAvailableYears] = useState(propAvailableYears || []);
-  const [selectedTrimestre, setSelectedTrimestre] = useState('');
-  const [trimestres, setTrimestres] = useState([]);
 
   const API_BASE_URL = 'https://scolaire.onrender.com/api';
 
@@ -42,54 +40,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     } else {
       return `${year - 1}-${year}`;
     }
-  };
-
-  // Charger les trimestres depuis la configuration
-  const loadTrimestres = () => {
-    try {
-      const config = localStorage.getItem('schoolYearConfig');
-      if (config) {
-        const parsedConfig = JSON.parse(config);
-        if (parsedConfig.trimestres) {
-          setTrimestres(parsedConfig.trimestres);
-          // Sélectionner le trimestre actuel par défaut
-          const currentTrimestre = getCurrentTrimestre(parsedConfig.trimestres);
-          setSelectedTrimestre(currentTrimestre?.nom || '');
-        }
-      }
-    } catch (error) {
-      console.error('Erreur chargement trimestres:', error);
-    }
-  };
-
-  // Déterminer le trimestre actuel
-  const getCurrentTrimestre = (trimestresList) => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentDay = now.getDate();
-
-    for (const trimestre of trimestresList) {
-      const startMonth = trimestre.dateDebut.month;
-      const startDay = trimestre.dateDebut.day;
-      const endMonth = trimestre.dateFin.month;
-      const endDay = trimestre.dateFin.day;
-
-      // Gérer les trimestres qui chevauchent deux années
-      if (endMonth < startMonth) {
-        if ((currentMonth >= startMonth && currentMonth <= 11) || 
-            (currentMonth >= 0 && currentMonth <= endMonth)) {
-          return trimestre;
-        }
-      } else {
-        if (currentMonth >= startMonth && currentMonth <= endMonth) {
-          if (currentMonth === startMonth && currentDay < startDay) continue;
-          if (currentMonth === endMonth && currentDay > endDay) continue;
-          return trimestre;
-        }
-      }
-    }
-    
-    return trimestresList[0]; // Par défaut
   };
 
   // Génération des années scolaires si non fournies en props
@@ -122,7 +72,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     if (selectedYear) {
       loadMobileResults();
       loadHistoricalData();
-      loadTrimestres();
       const interval = setInterval(loadMobileResults, 60000);
       return () => clearInterval(interval);
     }
@@ -131,12 +80,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
   const loadMobileResults = async () => {
     try {
       setLoading(true);
-      // AJOUT: Inclure le paramètre trimestre dans la requête
-      const url = selectedTrimestre 
-        ? `${API_BASE_URL}/results?trimestre=${encodeURIComponent(selectedTrimestre)}`
-        : `${API_BASE_URL}/results`;
-      
-      const response = await fetch(url);
+      const response = await fetch(`${API_BASE_URL}/results`);
       const data = await response.json();
       
       if (data.success) {
@@ -212,11 +156,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     const yearStudents = yearData.students;
     const yearResults = yearData.mobileResults;
 
-    // AJOUT: Filtrer les résultats par trimestre si sélectionné
-    const filteredResults = selectedTrimestre 
-      ? yearResults.filter(result => result.trimestre === selectedTrimestre)
-      : yearResults;
-
     const filteredStudents = selectedClass 
       ? yearStudents.filter(s => s.classe === selectedClass)
       : yearStudents;
@@ -236,7 +175,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
 
     const averages = filteredStudents.map(student => {
       const traditionalNotes = student.notes || {};
-      const studentMobileResults = filteredResults.filter(
+      const studentMobileResults = yearResults.filter(
         result => result.student_matricule === student.matricule
       );
       
@@ -273,7 +212,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     const satisfactory = averages.filter(avg => avg >= 10 && avg < 14).length;
     const unsatisfactory = averages.filter(avg => avg < 10).length;
 
-    const mobileCorrectionsCount = filteredResults.filter(result =>
+    const mobileCorrectionsCount = yearResults.filter(result =>
       filteredStudents.some(student => student.matricule === result.student_matricule)
     ).length;
 
@@ -321,11 +260,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     const yearStudents = yearData.students;
     const yearResults = yearData.mobileResults;
 
-    // AJOUT: Filtrer les résultats par trimestre si sélectionné
-    const filteredResults = selectedTrimestre 
-      ? yearResults.filter(result => result.trimestre === selectedTrimestre)
-      : yearResults;
-
     const filteredStudents = selectedClass 
       ? yearStudents.filter(s => s.classe === selectedClass)
       : yearStudents;
@@ -335,7 +269,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
 
     const finalNotes = [];
     filteredStudents.forEach(student => {
-      const studentMobileResults = filteredResults.filter(
+      const studentMobileResults = yearResults.filter(
         result => result.student_matricule === student.matricule && result.subject_code === subjectCode
       );
       
@@ -396,18 +330,13 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     const yearStudents = yearData.students;
     const yearResults = yearData.mobileResults;
 
-    // AJOUT: Filtrer les résultats par trimestre si sélectionné
-    const filteredResults = selectedTrimestre 
-      ? yearResults.filter(result => result.trimestre === selectedTrimestre)
-      : yearResults;
-
     const classes = [...new Set(yearStudents.map(s => s.classe))].filter(Boolean);
     
     return classes.map(classe => {
       const classStudents = yearStudents.filter(s => s.classe === classe);
       const averages = classStudents.map(student => {
         const traditionalNotes = student.notes || {};
-        const studentMobileResults = filteredResults.filter(
+        const studentMobileResults = yearResults.filter(
           result => result.student_matricule === student.matricule
         );
         
@@ -486,113 +415,11 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     ];
   };
 
-  // AJOUT: Fonction pour charger les statistiques par trimestre
-  const loadTrimestreStats = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/results/stats/trimestre?trimestre=${encodeURIComponent(selectedTrimestre)}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        return data.stats;
-      }
-    } catch (error) {
-      console.error('Erreur chargement stats trimestre:', error);
-    }
-    return null;
-  };
-
-  // AJOUT: Fonction pour obtenir les statistiques comparatives par trimestre
-  const getTrimestreComparison = () => {
-    if (!trimestres.length) return [];
-
-    return trimestres.map(trimestre => {
-      const currentYear = getCurrentSchoolYear();
-      const isCurrentYear = selectedYear === currentYear;
-      
-      // Pour l'année en cours, on peut filtrer les données existantes
-      if (isCurrentYear) {
-        const filteredResults = mobileResults.filter(result => result.trimestre === trimestre.nom);
-        // Calculer les stats basées sur les résultats filtrés
-        // (similaire à calculateGlobalStats mais avec filteredResults)
-        const stats = calculateStatsForTrimestre(filteredResults);
-        return {
-          trimestre: trimestre.nom,
-          ...stats,
-          hasData: filteredResults.length > 0
-        };
-      } else {
-        // Pour les années archivées, on ne peut pas facilement séparer par trimestre
-        // sans avoir stocké cette information lors de l'archivage
-        return {
-          trimestre: trimestre.nom,
-          totalCorrections: 0,
-          averageScore: 0,
-          totalStudents: 0,
-          hasData: false
-        };
-      }
-    });
-  };
-
-  // AJOUT: Fonction utilitaire pour calculer les stats d'un trimestre
-  const calculateStatsForTrimestre = (filteredResults) => {
-    const yearData = getYearData();
-    const yearStudents = yearData.students;
-    
-    const filteredStudents = selectedClass 
-      ? yearStudents.filter(s => s.classe === selectedClass)
-      : yearStudents;
-
-    if (filteredStudents.length === 0) {
-      return {
-        totalCorrections: 0,
-        averageScore: 0,
-        totalStudents: 0,
-        successRate: 0
-      };
-    }
-
-    // Calculer la moyenne basée sur les résultats du trimestre
-    const studentAverages = filteredStudents.map(student => {
-      const studentResults = filteredResults.filter(
-        result => result.student_matricule === student.matricule
-      );
-      
-      if (studentResults.length === 0) return 0;
-
-      const scores = studentResults.map(result => {
-        const maxPoints = result.max_points || (20 * (result.subject_coefficient || 1));
-        return (result.score / maxPoints) * 20;
-      });
-
-      return scores.reduce((sum, score) => sum + score, 0) / scores.length;
-    });
-
-    const validAverages = studentAverages.filter(avg => avg > 0);
-    const averageScore = validAverages.length > 0 
-      ? validAverages.reduce((sum, avg) => sum + avg, 0) / validAverages.length 
-      : 0;
-
-    const successRate = validAverages.length > 0
-      ? (validAverages.filter(avg => avg >= 10).length / validAverages.length * 100)
-      : 0;
-
-    return {
-      totalCorrections: filteredResults.length,
-      averageScore: averageScore.toFixed(2),
-      totalStudents: validAverages.length,
-      successRate: successRate.toFixed(1)
-    };
-  };
-
   const exportToCSV = () => {
     const yearData = getYearData();
     const stats = calculateGlobalStats();
     
     let csvContent = "Données Statistiques Scolaires - Année " + selectedYear + "\\n";
-    if (selectedTrimestre) {
-      csvContent += `Trimestre: ${selectedTrimestre}\\n`;
-    }
     csvContent += "Exporté le: " + new Date().toLocaleDateString('fr-FR') + "\\n\\n";
     
     csvContent += "STATISTIQUES GLOBALES\\n";
@@ -625,10 +452,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    const filename = selectedTrimestre 
-      ? `statistiques_${selectedYear}_${selectedTrimestre}.csv`
-      : `statistiques_scolaires_${selectedYear}.csv`;
-    link.setAttribute('download', filename);
+    link.setAttribute('download', `statistiques_scolaires_${selectedYear}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -660,7 +484,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
       <body>
         <h1>📊 Tableau de Bord des Performances Académiques</h1>
         <h2>Année Scolaire: ${selectedYear}</h2>
-        ${selectedTrimestre ? `<h3>Trimestre: ${selectedTrimestre}</h3>` : ''}
         <p>Exporté le: ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
         
         <div class="stats-grid">
@@ -732,7 +555,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
   const subjectsPerformance = getSubjectsPerformance();
   const allClassesStats = getAllClassesStats();
   const globalDistribution = getGlobalDistribution();
-  const trimestreComparison = getTrimestreComparison();
   
   const yearData = getYearData();
   const classes = [...new Set(yearData.students.map(s => s.classe))].filter(Boolean);
@@ -747,7 +569,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
             <h1>Tableau de Bord des Performances Académiques</h1>
             <p className="subtitle">
               Analyse complète des statistiques scolaires avec historique multi-années
-              {selectedTrimestre && ` • Trimestre: ${selectedTrimestre}`}
             </p>
           </div>
           
@@ -779,25 +600,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
                   ))}
                 </select>
               </div>
-
-              {/* AJOUT: Sélecteur de trimestre */}
-              {trimestres.length > 0 && (
-                <div className="trimestre-selector">
-                  <Calendar size={16} />
-                  <select 
-                    value={selectedTrimestre} 
-                    onChange={(e) => setSelectedTrimestre(e.target.value)}
-                    className="select-control trimestre-select"
-                  >
-                    <option value="">Tous les trimestres</option>
-                    {trimestres.map(trimestre => (
-                      <option key={trimestre.nom} value={trimestre.nom}>
-                        {trimestre.nom}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
             </div>
 
             <div className="action-buttons">
@@ -865,16 +667,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
             <Users size={16} />
             Par Classe
           </button>
-          {/* AJOUT: Vue trimestres */}
-          {trimestres.length > 0 && (
-            <button 
-              className={`nav-btn ${viewMode === 'trimestres' ? 'active' : ''}`}
-              onClick={() => setViewMode('trimestres')}
-            >
-              <Calendar size={16} />
-              Par Trimestre
-            </button>
-          )}
         </div>
       </div>
 
@@ -1278,70 +1070,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
             </div>
           </div>
         )}
-
-        {/* AJOUT: Vue trimestres */}
-        {viewMode === 'trimestres' && trimestres.length > 0 && (
-          <div className="trimestres-view">
-            <div className="chart-card full-width">
-              <div className="chart-header">
-                <h3>Comparaison des Trimestres - Année {selectedYear}</h3>
-              </div>
-              <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={trimestreComparison}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="trimestre" tick={{fontSize: 12}} />
-                  <YAxis yAxisId="left" tick={{fontSize: 11}} />
-                  <YAxis yAxisId="right" orientation="right" tick={{fontSize: 11}} domain={[0, 20]} />
-                  <Tooltip />
-                  <Legend />
-                  <Bar yAxisId="left" dataKey="totalCorrections" fill="#3b82f6" name="Corrections" radius={[4, 4, 0, 0]} />
-                  <Line yAxisId="right" type="monotone" dataKey="averageScore" stroke="#10b981" strokeWidth={2} name="Moyenne /20" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="trimestre-cards">
-              {trimestreComparison.map((trimestre, index) => (
-                <div key={trimestre.trimestre} className={`trimestre-card ${!trimestre.hasData ? 'no-data' : ''}`}>
-                  <div className="trimestre-card-header">
-                    <h3>{trimestre.trimestre}</h3>
-                    {trimestre.hasData && (
-                      <div className="trimestre-rank">#{index + 1}</div>
-                    )}
-                  </div>
-                  
-                  {trimestre.hasData ? (
-                    <>
-                      <div className="trimestre-stats">
-                        <div className="trimestre-stat">
-                          <div className="trimestre-value">{trimestre.totalCorrections}</div>
-                          <div className="trimestre-label">Corrections</div>
-                        </div>
-                        <div className="trimestre-stat">
-                          <div className="trimestre-value">{trimestre.averageScore}/20</div>
-                          <div className="trimestre-label">Moyenne</div>
-                        </div>
-                        <div className="trimestre-stat">
-                          <div className="trimestre-value">{trimestre.successRate}%</div>
-                          <div className="trimestre-label">Réussite</div>
-                        </div>
-                        <div className="trimestre-stat">
-                          <div className="trimestre-value">{trimestre.totalStudents}</div>
-                          <div className="trimestre-label">Étudiants</div>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="no-data-content">
-                      <Calendar size={32} color="#ccc" />
-                      <p>Aucune donnée pour ce trimestre</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="footer">
@@ -1400,7 +1128,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
           gap: 12px;
         }
 
-        .filter-control, .year-selector, .trimestre-selector {
+        .filter-control, .year-selector {
           display: flex;
           align-items: center;
           gap: 8px;
@@ -1421,7 +1149,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
           width: 100%;
         }
 
-        .year-select, .trimestre-select {
+        .year-select {
           font-weight: 500;
           color: #495057;
         }
@@ -1717,19 +1445,19 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
           grid-column: 1 / -1;
         }
 
-        .history-view, .trimestres-view {
+        .history-view {
           display: flex;
           flex-direction: column;
           gap: 20px;
         }
 
-        .history-cards, .trimestre-cards {
+        .history-cards {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
           gap: 16px;
         }
 
-        .history-card, .trimestre-card {
+        .history-card {
           background: white;
           border-radius: 8px;
           border: 1px solid #e9ecef;
@@ -1737,26 +1465,26 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
           box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
-        .history-card.no-data, .trimestre-card.no-data {
+        .history-card.no-data {
           opacity: 0.6;
           border-style: dashed;
         }
 
-        .history-card-header, .trimestre-card-header {
+        .history-card-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin-bottom: 16px;
         }
 
-        .history-card-header h3, .trimestre-card-header h3 {
+        .history-card-header h3 {
           font-size: 16px;
           font-weight: 600;
           color: #1a1a1a;
           margin: 0;
         }
 
-        .current-badge, .archived-badge, .trimestre-rank {
+        .current-badge, .archived-badge {
           font-size: 10px;
           padding: 4px 8px;
           border-radius: 4px;
@@ -1773,34 +1501,25 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
           color: white;
         }
 
-        .trimestre-rank {
-          background: #007bff;
-          color: white;
-        }
-
-        .history-stats, .trimestre-stats {
+        .history-stats {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 12px;
           margin-bottom: 16px;
         }
 
-        .trimestre-stats {
-          grid-template-columns: repeat(4, 1fr);
-        }
-
-        .history-stat, .trimestre-stat {
+        .history-stat {
           text-align: center;
         }
 
-        .history-value, .trimestre-value {
+        .history-value {
           font-size: 18px;
           font-weight: 700;
           color: #1a1a1a;
           margin-bottom: 4px;
         }
 
-        .history-label, .trimestre-label {
+        .history-label {
           font-size: 11px;
           color: #6c757d;
         }
@@ -2066,10 +1785,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
           .subject-charts {
             grid-template-columns: 1fr;
           }
-
-          .control-group {
-            flex-direction: column;
-          }
         }
 
         @media (max-width: 768px) {
@@ -2080,6 +1795,10 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
           .header-controls {
             width: 100%;
             min-width: auto;
+          }
+
+          .control-group {
+            flex-direction: column;
           }
 
           .action-buttons {
@@ -2111,10 +1830,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
             flex-direction: column;
             gap: 8px;
             text-align: center;
-          }
-
-          .history-stats, .trimestre-stats {
-            grid-template-columns: repeat(2, 1fr);
           }
         }
       `}</style>
