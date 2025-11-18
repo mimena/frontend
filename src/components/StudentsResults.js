@@ -9,11 +9,9 @@ import {
   BookOpen,
   ChevronRight,
   Download,
-  FileText,
-  Calendar
+  FileText
 } from 'lucide-react';
 
-// Service API intégré
 const API_BASE_URL = 'https://scolaire.onrender.com/api';
 
 const apiService = {
@@ -57,7 +55,7 @@ const apiService = {
   }
 };
 
-const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App.js via les props
+const StudentResults = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -79,24 +77,32 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
                student.classe.trim() !== '';
       })
       .forEach(student => {
-        let totalScore = 0;
+        let totalWeightedScore = 0;
         let totalCoefficients = 0;
         
+        // Pour chaque matière, prendre uniquement la DERNIÈRE note
         Object.values(student.subjects).forEach(subject => {
           if (subject.scores.length > 0) {
-            const avg = subject.scores.reduce((sum, score) => sum + score, 0) / subject.scores.length;
-            subject.average = avg;
-            subject.lastScore = subject.scores[subject.scores.length - 1];
+            // Prendre uniquement la DERNIÈRE note (la plus récente)
+            const lastScore = subject.scores[subject.scores.length - 1];
+            subject.average = lastScore;
+            subject.lastScore = lastScore;
             
-            const noteOver20 = (avg / subject.maxPoints) * 20;
-            subject.noteOver20 = noteOver20;
+            // La note est DÉJÀ sur 20
+            subject.noteOver20 = lastScore;
             
-            totalScore += noteOver20 * subject.coefficient;
+            // Calcul avec coefficient
+            const weightedScore = lastScore * subject.coefficient;
+            totalWeightedScore += weightedScore;
             totalCoefficients += subject.coefficient;
           }
         });
         
-        student.averageScore = totalCoefficients > 0 ? totalScore / totalCoefficients : 0;
+        // Calcul de la moyenne générale avec les coefficients
+        student.averageScore = totalCoefficients > 0 ? totalWeightedScore / totalCoefficients : 0;
+        student.totalCoefficients = totalCoefficients;
+        student.totalWeightedScore = totalWeightedScore;
+        student.maxWeightedPoints = totalCoefficients * 20;
         student.totalSubjects = Object.keys(student.subjects).length;
         
         let className = student.classe.trim();
@@ -110,7 +116,9 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
             students: [],
             totalStudents: 0,
             averageScore: 0,
-            totalCorrections: 0
+            totalCorrections: 0,
+            totalCoefficients: 0,
+            totalWeightedScore: 0
           };
         }
         
@@ -118,21 +126,19 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
         classesList[className].totalStudents++;
         classesList[className].totalCorrections += Object.values(student.subjects)
           .reduce((sum, s) => sum + s.corrections, 0);
+        classesList[className].totalCoefficients += totalCoefficients;
+        classesList[className].totalWeightedScore += totalWeightedScore;
       });
   
+    // Calcul de la moyenne de classe avec coefficients
     Object.values(classesList).forEach(classe => {
-      const totalWeightedScore = classe.students.reduce((sum, student) => {
-        const studentWeight = Object.values(student.subjects)
-          .reduce((totalCoeff, subject) => totalCoeff + subject.coefficient, 0);
-        return sum + (student.averageScore * studentWeight);
-      }, 0);
-      
       const totalWeights = classe.students.reduce((sum, student) => {
-        return sum + Object.values(student.subjects)
-          .reduce((totalCoeff, subject) => totalCoeff + subject.coefficient, 0);
+        return sum + student.totalCoefficients;
       }, 0);
       
-      classe.averageScore = totalWeights > 0 ? totalWeightedScore / totalWeights : 0;
+      classe.averageScore = totalWeights > 0 ? classe.totalWeightedScore / totalWeights : 0;
+      classe.maxWeightedPoints = classe.totalCoefficients * 20;
+      // Trier les étudiants par nom
       classe.students.sort((a, b) => a.nom.localeCompare(b.nom));
     });
   
@@ -154,6 +160,8 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
         const results = resultsData.results || [];
         
         const studentsMap = {};
+        
+        // Initialiser tous les étudiants
         students.forEach(student => {
           const matricule = student.matricule || student.id;
           const classe = student.classe || student.class || null;
@@ -172,16 +180,23 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
           };
         });
         
-        results.forEach(result => {
+        // Trier les résultats par date (plus récent en premier)
+        const sortedResults = [...results].sort((a, b) => 
+          new Date(b.created_at) - new Date(a.created_at)
+        );
+        
+        // Traiter les résultats triés
+        sortedResults.forEach(result => {
           const matricule = result.student_matricule;
           
           const analysisResult = result.analysis_result || {};
-          const finalNote = parseFloat(analysisResult.final_note) || parseFloat(analysisResult.total_points) || parseFloat(result.score);
+          
+          // Utiliser UNIQUEMENT le score déjà calculé sur 20 (note exacte du mobile)
+          const finalNote = parseFloat(result.score); // Note exacte du mobile
           
           const coefficient = parseFloat(result.subject_coefficient) || 1.0;
-          const maxPoints = parseFloat(result.max_points) || (20.0 * coefficient);
           
-          if (isNaN(finalNote) || finalNote < 0 || finalNote > maxPoints) {
+          if (isNaN(finalNote) || finalNote < 0 || finalNote > 20) {
             console.warn('Score invalide ignoré:', result);
             return;
           }
@@ -197,16 +212,18 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
           }
           
           const subjectName = result.subject_name || 'Matière inconnue';
+          
           if (!studentsMap[matricule].subjects[subjectName]) {
             studentsMap[matricule].subjects[subjectName] = {
               name: subjectName,
               scores: [],
               corrections: 0,
               coefficient: coefficient,
-              maxPoints: maxPoints
+              maxPoints: 20
             };
           }
           
+          // Ajouter la note à la liste (la plus récente sera en dernier)
           studentsMap[matricule].subjects[subjectName].scores.push(finalNote);
           studentsMap[matricule].subjects[subjectName].corrections++;
         });
@@ -260,10 +277,17 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
     return '⚠️ À améliorer';
   };
 
-  const formatScore = (score, maxPoints = 20) => {
+  // Fonctions d'affichage
+  const formatScoreSur20 = (score) => {
     if (isNaN(score)) return '—';
-    const max = maxPoints || 20;
-    return `${score.toFixed(1)}/${max.toFixed(0)}`;
+    return `${score.toFixed(1)}/20`;
+  };
+
+  const formatScoreAvecCoefficient = (score, coefficient = 1) => {
+    if (isNaN(score)) return '—';
+    const scoreAvecCoefficient = score * coefficient;
+    const maxAvecCoefficient = 20 * coefficient;
+    return `${scoreAvecCoefficient.toFixed(1)}/${maxAvecCoefficient.toFixed(0)}`;
   };
 
   // ==================== EXPORT CSV ====================
@@ -278,21 +302,21 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
 
     let csv = 'Matricule,Nom et Prénom';
     allSubjects.forEach(subject => {
-      csv += `,${subject}`;
+      csv += `,${subject} (/20),${subject} (avec coef.)`;
     });
-    csv += ',Moyenne Générale\n';
+    csv += ',Moyenne Générale (/20),Moyenne Générale (avec coef.)\n';
 
     classe.students.forEach(student => {
       csv += `${student.matricule},"${student.nom} ${student.prenom}"`;
       allSubjects.forEach(subjectName => {
         const subject = student.subjects[subjectName];
         if (subject) {
-          csv += `,${subject.average.toFixed(1)}/${subject.maxPoints.toFixed(0)}`;
+          csv += `,${subject.lastScore.toFixed(1)}/20,${formatScoreAvecCoefficient(subject.lastScore, subject.coefficient)}`;
         } else {
-          csv += ',—';
+          csv += ',—,—';
         }
       });
-      csv += `,${student.averageScore.toFixed(2)}\n`;
+      csv += `,${student.averageScore.toFixed(2)}/20,${formatScoreAvecCoefficient(student.averageScore, student.totalCoefficients)}\n`;
     });
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -303,16 +327,16 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
   };
 
   const exportStudentCSV = (student, className) => {
-    let csv = 'Matière,Coefficient,Moyenne,Note/20\n';
+    let csv = 'Matière,Coefficient,Note/20,Note avec Coefficient\n';
     
     Object.values(student.subjects)
       .sort((a, b) => a.name.localeCompare(b.name))
       .forEach(subject => {
-        const noteOver20 = subject.noteOver20 || ((subject.average / subject.maxPoints) * 20);
-        csv += `"${subject.name}",${subject.coefficient},${subject.average.toFixed(1)}/${subject.maxPoints.toFixed(0)},${noteOver20.toFixed(1)}/20\n`;
+        csv += `"${subject.name}",${subject.coefficient},${subject.lastScore.toFixed(1)}/20,${formatScoreAvecCoefficient(subject.lastScore, subject.coefficient)}\n`;
       });
     
-    csv += `\nMOYENNE GÉNÉRALE,—,${student.averageScore.toFixed(2)}/20,${getAppreciation(student.averageScore)}\n`;
+    csv += `\nMOYENNE GÉNÉRALE,${student.totalCoefficients},${student.averageScore.toFixed(2)}/20,${formatScoreAvecCoefficient(student.averageScore, student.totalCoefficients)}\n`;
+    csv += `APPREACIATION,—,${getAppreciation(student.averageScore)},—\n`;
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -445,9 +469,9 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
                   ${allSubjects.map(subjectName => {
                     const subject = student.subjects[subjectName];
                     if (!subject) return '<td>—</td>';
-                    return `<td class="score-cell">${subject.average.toFixed(1)}/${subject.maxPoints.toFixed(0)}</td>`;
+                    return `<td class="score-cell">${formatScoreAvecCoefficient(subject.lastScore, subject.coefficient)}</td>`;
                   }).join('')}
-                  <td class="moyenne-col">${student.averageScore.toFixed(2)}/20</td>
+                  <td class="moyenne-col">${formatScoreAvecCoefficient(student.averageScore, student.totalCoefficients)}</td>
                 </tr>
               `;
             }).join('')}
@@ -565,7 +589,7 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
           .note-over-20 {
             padding: 8px 12px;
             border-radius: 6px;
-                            font-weight: bold;
+            font-weight: bold;
             display: inline-block;
             background-color: #f3f4f6;
             color: #1f2937;
@@ -602,7 +626,7 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
         
         <div class="moyenne-generale">
           <div style="font-size: 18px; color: #6b7280;">MOYENNE GÉNÉRALE</div>
-          <div class="score">${student.averageScore.toFixed(2)}/20</div>
+          <div class="score">${formatScoreAvecCoefficient(student.averageScore, student.totalCoefficients)}</div>
           <div class="appreciation">${getAppreciation(student.averageScore)}</div>
         </div>
         
@@ -611,7 +635,7 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
             <tr>
               <th style="width: 40%;">Matière</th>
               <th style="width: 15%;">Coeff.</th>
-              <th style="width: 25%;">Moyenne</th>
+              <th style="width: 25%;">Note avec Coefficient</th>
               <th style="width: 20%;">Note/20</th>
             </tr>
           </thead>
@@ -619,7 +643,6 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
             ${Object.values(student.subjects)
               .sort((a, b) => a.name.localeCompare(b.name))
               .map(subject => {
-                const noteOver20 = subject.noteOver20 || ((subject.average / subject.maxPoints) * 20);
                 return `
                   <tr>
                     <td class="subject-name">${subject.name}</td>
@@ -627,10 +650,10 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
                       <span class="coeff-badge">${subject.coefficient}</span>
                     </td>
                     <td class="score-cell">
-                      ${subject.average.toFixed(1)}/${subject.maxPoints.toFixed(0)}
+                      ${formatScoreAvecCoefficient(subject.lastScore, subject.coefficient)}
                     </td>
                     <td style="text-align: center;">
-                      <span class="note-over-20">${noteOver20.toFixed(1)}/20</span>
+                      <span class="note-over-20">${subject.lastScore.toFixed(1)}/20</span>
                     </td>
                   </tr>
                 `;
@@ -638,7 +661,7 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
             <tr class="footer-row">
               <td colspan="2"><strong>MOYENNE GÉNÉRALE</strong></td>
               <td class="score-cell" style="font-size: 18px;">
-                <strong>${student.averageScore.toFixed(2)}/20</strong>
+                <strong>${formatScoreAvecCoefficient(student.averageScore, student.totalCoefficients)}</strong>
               </td>
               <td style="text-align: center; color: #6b7280;">
                 ${getAppreciation(student.averageScore)}
@@ -684,32 +707,7 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
     setSelectedStudent(null);
   };
 
-  // Composant pour afficher l'info du trimestre
-  const renderTrimestreInfo = () => (
-    <div style={{ marginBottom: '1.5rem' }}>
-      <div style={{
-        padding: '1rem',
-        backgroundColor: '#eff6ff',
-        borderRadius: '8px',
-        border: '1px solid #bfdbfe',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem'
-      }}>
-        <Calendar style={{ width: '20px', height: '20px', color: '#2563eb' }} />
-        <div>
-          <div style={{ fontWeight: '600', color: '#1e40af', fontSize: '0.875rem' }}>
-            {currentTrimestre?.nom || 'Trimestre non défini'}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-            Résultats affichés pour ce trimestre
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Vue 1: Liste des classes (SANS MOYENNE GÉNÉRALE)
+  // Vue 1: Liste des classes
   const renderClassesView = () => {
     if (classesList.length === 0) {
       return (
@@ -729,8 +727,6 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
 
     return (
       <div>
-        {renderTrimestreInfo()}
-        
         <div style={{ display: 'grid', gap: '1.5rem', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
           {classesList.map((classe) => (
             <div 
@@ -771,6 +767,16 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280' }}>
                     <Users style={{ width: '16px', height: '16px' }} />
                     <span>{classe.totalCorrections} corrections</span>
+                  </div>
+                  <div style={{ 
+                    padding: '0.5rem 0.75rem', 
+                    borderRadius: '0.375rem', 
+                    backgroundColor: getScoreBgColor(classe.averageScore),
+                    color: getScoreColor(classe.averageScore),
+                    fontWeight: '600',
+                    fontSize: '0.875rem'
+                  }}>
+                    {formatScoreAvecCoefficient(classe.averageScore, classe.totalCoefficients)}
                   </div>
                 </div>
               </div>
@@ -913,8 +919,9 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
                         if (!subject) {
                           return <td key={idx} style={{ textAlign: 'center', color: '#9ca3af' }}>—</td>;
                         }
-                        const avgScore = subject.average;
-                        const maxPoints = subject.maxPoints;
+                        const lastScore = subject.lastScore;
+                        const coefficient = subject.coefficient;
+                        
                         return (
                           <td key={idx} style={{ textAlign: 'center' }}>
                             <span style={{
@@ -927,7 +934,7 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
                               display: 'inline-block',
                               minWidth: '65px'
                             }}>
-                              {avgScore.toFixed(1)}/{maxPoints.toFixed(0)}
+                              {formatScoreAvecCoefficient(lastScore, coefficient)}
                             </span>
                           </td>
                         );
@@ -943,7 +950,7 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
                           display: 'inline-block',
                           minWidth: '70px'
                         }}>
-                          {student.averageScore.toFixed(2)}
+                          {formatScoreAvecCoefficient(student.averageScore, student.totalCoefficients)}
                         </span>
                       </td>
                     </tr>
@@ -1014,7 +1021,7 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
                     Matricule: {selectedStudent.matricule} • Classe: {selectedClass.name}
                   </p>
                   <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: '#6b7280' }}>
-                    {selectedStudent.totalSubjects} matière{selectedStudent.totalSubjects > 1 ? 's' : ''}
+                    {selectedStudent.totalSubjects} matière{selectedStudent.totalSubjects > 1 ? 's' : ''} • Total coefficients: {selectedStudent.totalCoefficients}
                   </p>
                 </div>
               </div>
@@ -1025,7 +1032,7 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
                   fontWeight: 'bold',
                   color: getScoreColor(selectedStudent.averageScore)
                 }}>
-                  {formatScore(selectedStudent.averageScore, 20)}
+                  {formatScoreAvecCoefficient(selectedStudent.averageScore, selectedStudent.totalCoefficients)}
                 </div>
                 <div style={{ fontSize: '1rem', color: '#6b7280', marginTop: '0.25rem' }}>
                   {getAppreciation(selectedStudent.averageScore)}
@@ -1070,7 +1077,7 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
                   <tr>
                     <th style={{ width: '50%' }}>Matière</th>
                     <th style={{ textAlign: 'center', width: '15%' }}>Coeff</th>
-                    <th style={{ textAlign: 'center', width: '20%' }}>Moyenne</th>
+                    <th style={{ textAlign: 'center', width: '20%' }}>Note avec Coefficient</th>
                     <th style={{ textAlign: 'center', width: '15%' }}>Note/20</th>
                   </tr>
                 </thead>
@@ -1079,8 +1086,7 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
                     .sort((a, b) => a.name.localeCompare(b.name))
                     .map((subject, index) => {
                       const coefficient = subject.coefficient || 1;
-                      const maxPoints = subject.maxPoints || (20 * coefficient);
-                      const noteOver20 = subject.noteOver20 || ((subject.average / maxPoints) * 20);
+                      const lastScore = subject.lastScore;
                       
                       return (
                         <tr key={index}>
@@ -1113,7 +1119,7 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
                               fontWeight: 'bold',
                               color: '#1f2937'
                             }}>
-                              {formatScore(subject.average, maxPoints)}
+                              {formatScoreAvecCoefficient(lastScore, coefficient)}
                             </span>
                           </td>
                           
@@ -1126,7 +1132,7 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
                               fontWeight: 'bold',
                               fontSize: '1rem'
                             }}>
-                              {noteOver20.toFixed(1)}/20
+                              {lastScore.toFixed(1)}/20
                             </span>
                           </td>
                         </tr>
@@ -1139,10 +1145,25 @@ const StudentResults = ({ currentTrimestre }) => { // ✅ Récupéré depuis App
                     borderTop: '2px solid #e5e7eb'
                   }}>
                     <td style={{ fontSize: '1.125rem' }}>MOYENNE GÉNÉRALE</td>
-                    <td style={{ textAlign: 'center' }}>—</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span style={{
+                        width: '32px',
+                        height: '32px',
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        borderRadius: '50%',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 'bold',
+                        fontSize: '0.875rem'
+                      }}>
+                        {selectedStudent.totalCoefficients}
+                      </span>
+                    </td>
                     <td style={{ textAlign: 'center' }}>
                       <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
-                        {formatScore(selectedStudent.averageScore, 20)}
+                        {formatScoreAvecCoefficient(selectedStudent.averageScore, selectedStudent.totalCoefficients)}
                       </span>
                     </td>
                     <td style={{ textAlign: 'center' }}>
