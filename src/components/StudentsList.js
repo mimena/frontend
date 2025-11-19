@@ -1491,7 +1491,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
             {/* Contenu scrollable */}
             <div style={{ 
               padding: '1.25rem',
-              maxHeight: 'calc(90vh - 120px)',
+              maxHeight: 'calc(90vh - 200px)',
               overflowY: 'auto'
             }}>
               <form onSubmit={handleSubmit} id="addStudentForm">
