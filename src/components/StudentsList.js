@@ -668,7 +668,6 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                       color: '#555',
                       marginBottom: '0.5rem'
                     }}>
-                      <Phone style={{ width: '14px', height: '14px' }} />
                       Téléphone
                     </label>
                     <input
@@ -943,7 +942,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
       {students.length > 0 && (
         <div style={{
           padding: '1.5rem',
-          backgroundColor: '#f8fafc',
+          backgroundColor: '#ffffff',
           borderBottom: '1px solid #e5e7eb'
         }}>
           <div style={{
@@ -953,9 +952,10 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
           }}>
             <div style={{
               padding: '1.5rem',
-              background: 'linear-gradient(135deg, #667eea 0%, #F3F2F4FF 100%)',
+              backgroundColor: '#ffffff',
               borderRadius: '0.75rem',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e5e7eb'
             }}>
               <div style={{
                 display: 'flex',
@@ -966,7 +966,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <div style={{
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: 'rgba(255, 255, 255, 0.9)',
+                    color: '#1e40af',
                     marginBottom: '0.5rem'
                   }}>
                     Total Étudiants
@@ -974,36 +974,31 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <div style={{
                     fontSize: '2rem',
                     fontWeight: 'bold',
-                    color: 'white'
+                    color: '#1e40af'
                   }}>
                     {students.length}
-                  </div>
-                  <div style={{
-                    fontSize: '0.75rem',
-                    color: 'rgba(255, 255, 255, 0.8)',
-                    marginTop: '0.25rem'
-                  }}>
                   </div>
                 </div>
                 <div style={{
                   width: '48px',
                   height: '48px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  backgroundColor: '#eff6ff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <Users style={{ width: '24px', height: '24px', color: 'white' }} />
+                  <Users style={{ width: '24px', height: '24px', color: '#1e40af' }} />
                 </div>
               </div>
             </div>
 
             <div style={{
               padding: '1.5rem',
-              background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
+              backgroundColor: '#ffffff',
               borderRadius: '0.75rem',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e5e7eb'
             }}>
               <div style={{
                 display: 'flex',
@@ -1014,7 +1009,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <div style={{
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: 'rgba(255, 255, 255, 0.9)',
+                    color: '#1e40af',
                     marginBottom: '0.5rem'
                   }}>
                     Classes
@@ -1022,37 +1017,31 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <div style={{
                     fontSize: '2rem',
                     fontWeight: 'bold',
-                    color: 'white'
+                    color: '#1e40af'
                   }}>
                     {classes.length}
-                  </div>
-                  <div style={{
-                    fontSize: '0.75rem',
-                    color: 'rgba(255, 255, 255, 0.8)',
-                    marginTop: '0.25rem'
-                  }}>
-                    
                   </div>
                 </div>
                 <div style={{
                   width: '48px',
                   height: '48px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  backgroundColor: '#eff6ff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <BookOpen style={{ width: '24px', height: '24px', color: 'white' }} />
+                  <BookOpen style={{ width: '24px', height: '24px', color: '#1e40af' }} />
                 </div>
               </div>
             </div>
 
             <div style={{
               padding: '1.5rem',
-              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              backgroundColor: '#ffffff',
               borderRadius: '0.75rem',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e5e7eb'
             }}>
               <div style={{
                 display: 'flex',
@@ -1063,7 +1052,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <div style={{
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: 'rgba(255, 255, 255, 0.9)',
+                    color: '#1e40af',
                     marginBottom: '0.5rem'
                   }}>
                     Garçons
@@ -1071,37 +1060,31 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <div style={{
                     fontSize: '2rem',
                     fontWeight: 'bold',
-                    color: 'white'
+                    color: '#1e40af'
                   }}>
                     {students.filter(s => s.genre === 'M').length}
-                  </div>
-                  <div style={{
-                    fontSize: '0.75rem',
-                    color: 'rgba(255, 255, 255, 0.8)',
-                    marginTop: '0.25rem'
-                  }}>
-                    
                   </div>
                 </div>
                 <div style={{
                   width: '48px',
                   height: '48px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  backgroundColor: '#eff6ff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <User style={{ width: '24px', height: '24px', color: 'white' }} />
+                  <User style={{ width: '24px', height: '24px', color: '#1e40af' }} />
                 </div>
               </div>
             </div>
 
             <div style={{
               padding: '1.5rem',
-              background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+              backgroundColor: '#ffffff',
               borderRadius: '0.75rem',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e5e7eb'
             }}>
               <div style={{
                 display: 'flex',
@@ -1112,7 +1095,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <div style={{
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: 'rgba(255, 255, 255, 0.9)',
+                    color: '#1e40af',
                     marginBottom: '0.5rem'
                   }}>
                     Filles
@@ -1120,28 +1103,21 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <div style={{
                     fontSize: '2rem',
                     fontWeight: 'bold',
-                    color: 'white'
+                    color: '#1e40af'
                   }}>
                     {students.filter(s => s.genre === 'F').length}
-                  </div>
-                  <div style={{
-                    fontSize: '0.75rem',
-                    color: 'rgba(255, 255, 255, 0.8)',
-                    marginTop: '0.25rem'
-                  }}>
-                
                   </div>
                 </div>
                 <div style={{
                   width: '48px',
                   height: '48px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  backgroundColor: '#eff6ff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <User style={{ width: '24px', height: '24px', color: 'white' }} />
+                  <User style={{ width: '24px', height: '24px', color: '#1e40af' }} />
                 </div>
               </div>
             </div>
@@ -1346,7 +1322,6 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                         color: '#374151',
                         fontSize: '0.875rem'
                       }}>
-                        <Phone style={{ width: '14px', height: '14px', color: '#6b7280' }} />
                         {student.telephone}
                       </div>
                     ) : (
@@ -1771,7 +1746,6 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                           color: '#555',
                           marginBottom: '0.5rem'
                         }}>
-                          <Phone style={{ width: '14px', height: '14px' }} />
                           Téléphone
                         </label>
                         <input
