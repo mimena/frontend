@@ -1,6 +1,5 @@
-// components/StudentsList.js
 import React, { useState } from 'react';
-import { Users, Plus, Search, Edit, Trash2, Save, X, UserPlus, User, Calendar, Phone, MapPin, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Users, Plus, Search, Edit, Trash2, Save, X, UserPlus, User, Calendar, Phone, MapPin, AlertTriangle, CheckCircle, BookOpen } from 'lucide-react';
 
 // Modal de confirmation de suppression
 const DeleteConfirmationModal = ({ student, isOpen, onClose, onConfirm, loading }) => {
@@ -291,7 +290,6 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
 
   React.useEffect(() => {
     if (student && isOpen) {
-      console.log('Chargement données étudiant pour édition:', student);
       setFormData({
         matricule: student.matricule || '',
         nom: student.nom || '',
@@ -349,11 +347,9 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
     setSaving(true);
     
     try {
-      console.log('Soumission modification étudiant:', formData);
       const success = await onSave(student.id, formData);
       
       if (success) {
-        console.log('Modification réussie');
         onClose();
       }
     } catch (error) {
@@ -395,15 +391,15 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          backgroundColor: '#fafafa'
+          backgroundColor: '#3b82f6'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <User style={{ width: '20px', height: '20px', color: '#555' }} />
+            <User style={{ width: '20px', height: '20px', color: 'white' }} />
             <h2 style={{ 
               margin: 0, 
               fontSize: '1.25rem', 
               fontWeight: '600', 
-              color: '#333' 
+              color: 'white' 
             }}>
               Modifier l'étudiant
             </h2>
@@ -420,7 +416,7 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
               opacity: saving ? 0.5 : 1
             }}
           >
-            <X style={{ width: '18px', height: '18px', color: '#666' }} />
+            <X style={{ width: '18px', height: '18px', color: 'white' }} />
           </button>
         </div>
 
@@ -764,7 +760,7 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
               padding: '0.625rem 1.25rem',
               border: 'none',
               borderRadius: '0.375rem',
-              backgroundColor: saving ? '#9ca3af' : '#555',
+              backgroundColor: saving ? '#9ca3af' : '#3b82f6',
               color: 'white',
               fontSize: '0.875rem',
               fontWeight: '500',
@@ -859,14 +855,12 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
   };
 
   const handleEdit = (student) => {
-    console.log('Ouverture du modal pour éditer:', student);
     setEditingStudent(student);
     setShowEditModal(true);
   };
 
   const handleSaveEdit = async (studentId, formData) => {
     try {
-      console.log('Sauvegarde des modifications:', studentId, formData);
       await onEditStudent(studentId, formData);
       setShowEditModal(false);
       setEditingStudent(null);
@@ -946,7 +940,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
       {students.length > 0 && (
         <div style={{
           padding: '1.5rem',
-          backgroundColor: '#fafafa',
+          backgroundColor: '#f8fafc',
           borderBottom: '1px solid #e5e7eb'
         }}>
           <div style={{
@@ -955,11 +949,10 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
             gap: '1rem'
           }}>
             <div style={{
-              padding: '1.25rem',
-              backgroundColor: 'white',
-              borderRadius: '0.5rem',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+              padding: '1.5rem',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              borderRadius: '0.75rem',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
             }}>
               <div style={{
                 display: 'flex',
@@ -970,39 +963,45 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <div style={{
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: '#666',
+                    color: 'rgba(255, 255, 255, 0.9)',
                     marginBottom: '0.5rem'
                   }}>
                     Total Étudiants
                   </div>
                   <div style={{
-                    fontSize: '1.75rem',
+                    fontSize: '2rem',
                     fontWeight: 'bold',
-                    color: '#333'
+                    color: 'white'
                   }}>
                     {students.length}
                   </div>
+                  <div style={{
+                    fontSize: '0.75rem',
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    marginTop: '0.25rem'
+                  }}>
+                    Corps professoral actif
+                  </div>
                 </div>
                 <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '0.5rem',
-                  backgroundColor: '#f5f5f5',
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <Users style={{ width: '20px', height: '20px', color: '#555' }} />
+                  <Users style={{ width: '24px', height: '24px', color: 'white' }} />
                 </div>
               </div>
             </div>
 
             <div style={{
-              padding: '1.25rem',
-              backgroundColor: 'white',
-              borderRadius: '0.5rem',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+              padding: '1.5rem',
+              background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
+              borderRadius: '0.75rem',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
             }}>
               <div style={{
                 display: 'flex',
@@ -1013,39 +1012,45 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <div style={{
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: '#666',
+                    color: 'rgba(255, 255, 255, 0.9)',
                     marginBottom: '0.5rem'
                   }}>
                     Classes
                   </div>
                   <div style={{
-                    fontSize: '1.75rem',
+                    fontSize: '2rem',
                     fontWeight: 'bold',
-                    color: '#333'
+                    color: 'white'
                   }}>
                     {classes.length}
                   </div>
+                  <div style={{
+                    fontSize: '0.75rem',
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    marginTop: '0.25rem'
+                  }}>
+                    Disciplines différentes
+                  </div>
                 </div>
                 <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '0.5rem',
-                  backgroundColor: '#f5f5f5',
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <span style={{ fontSize: '1.25rem' }}>📚</span>
+                  <BookOpen style={{ width: '24px', height: '24px', color: 'white' }} />
                 </div>
               </div>
             </div>
 
             <div style={{
-              padding: '1.25rem',
-              backgroundColor: 'white',
-              borderRadius: '0.5rem',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+              padding: '1.5rem',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              borderRadius: '0.75rem',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
             }}>
               <div style={{
                 display: 'flex',
@@ -1056,39 +1061,45 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <div style={{
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: '#666',
+                    color: 'rgba(255, 255, 255, 0.9)',
                     marginBottom: '0.5rem'
                   }}>
                     Garçons
                   </div>
                   <div style={{
-                    fontSize: '1.75rem',
+                    fontSize: '2rem',
                     fontWeight: 'bold',
-                    color: '#333'
+                    color: 'white'
                   }}>
                     {students.filter(s => s.genre === 'M').length}
                   </div>
+                  <div style={{
+                    fontSize: '0.75rem',
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    marginTop: '0.25rem'
+                  }}>
+                    Étudiants masculins
+                  </div>
                 </div>
                 <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '0.5rem',
-                  backgroundColor: '#f5f5f5',
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <span style={{ fontSize: '1.25rem' }}>👨‍🎓</span>
+                  <User style={{ width: '24px', height: '24px', color: 'white' }} />
                 </div>
               </div>
             </div>
 
             <div style={{
-              padding: '1.25rem',
-              backgroundColor: 'white',
-              borderRadius: '0.5rem',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+              padding: '1.5rem',
+              background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+              borderRadius: '0.75rem',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
             }}>
               <div style={{
                 display: 'flex',
@@ -1099,29 +1110,36 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <div style={{
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: '#666',
+                    color: 'rgba(255, 255, 255, 0.9)',
                     marginBottom: '0.5rem'
                   }}>
                     Filles
                   </div>
                   <div style={{
-                    fontSize: '1.75rem',
+                    fontSize: '2rem',
                     fontWeight: 'bold',
-                    color: '#333'
+                    color: 'white'
                   }}>
                     {students.filter(s => s.genre === 'F').length}
                   </div>
+                  <div style={{
+                    fontSize: '0.75rem',
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    marginTop: '0.25rem'
+                  }}>
+                    Étudiantes féminines
+                  </div>
                 </div>
                 <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '0.5rem',
-                  backgroundColor: '#f5f5f5',
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <span style={{ fontSize: '1.25rem' }}>👩‍🎓</span>
+                  <User style={{ width: '24px', height: '24px', color: 'white' }} />
                 </div>
               </div>
             </div>
@@ -1129,7 +1147,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
         </div>
       )}
 
-      {/* Filtres de recherche améliorés */}
+      {/* Filtres de recherche */}
       <div style={{
         padding: '1.5rem',
         backgroundColor: 'white',
@@ -1168,7 +1186,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                 transition: 'all 0.2s',
                 outline: 'none'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#555'}
+              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
               onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
             />
             {searchTerm && (
@@ -1204,7 +1222,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                 appearance: 'none',
                 outline: 'none'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#555'}
+              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
               onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
             >
               <option value="">Toutes les classes</option>
@@ -1229,13 +1247,14 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
           <div style={{
             marginTop: '1rem',
             padding: '0.75rem 1rem',
-            backgroundColor: '#f5f5f5',
+            backgroundColor: '#eff6ff',
             borderRadius: '0.375rem',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
+            border: '1px solid #bfdbfe'
           }}>
-            <span style={{ fontSize: '0.875rem', color: '#555' }}>
+            <span style={{ fontSize: '0.875rem', color: '#1e40af', fontWeight: '500' }}>
               <strong>{filteredStudents.length}</strong> étudiant(s) trouvé(s)
             </span>
             <button
@@ -1247,7 +1266,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                 padding: '0.375rem 0.75rem',
                 border: 'none',
                 borderRadius: '0.375rem',
-                backgroundColor: '#555',
+                backgroundColor: '#3b82f6',
                 color: 'white',
                 fontSize: '0.75rem',
                 cursor: 'pointer',
@@ -1286,33 +1305,33 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <td className="table-cell">
                     <span style={{
                       padding: '0.25rem 0.75rem',
-                      backgroundColor: '#f5f5f5',
-                      color: '#333',
+                      backgroundColor: '#eff6ff',
+                      color: '#1e40af',
                       borderRadius: '0.375rem',
                       fontSize: '0.75rem',
-                      fontWeight: '500',
-                      border: '1px solid #e5e7eb'
+                      fontWeight: '600',
+                      border: '1px solid #bfdbfe'
                     }}>
                       {student.matricule}
                     </span>
                   </td>
                   <td className="table-cell">
-                    <div style={{ fontWeight: '500', color: '#333' }}>
+                    <div style={{ fontWeight: '600', color: '#1f2937' }}>
                       {student.prenom} {student.nom}
                     </div>
                     {student.telephone && (
-                      <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.25rem' }}>{student.telephone}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>{student.telephone}</div>
                     )}
                   </td>
                   <td className="table-cell">
                     <span style={{
                       padding: '0.25rem 0.75rem',
-                      backgroundColor: '#f8f8f8',
-                      color: '#333',
+                      backgroundColor: '#f0f9ff',
+                      color: '#0369a1',
                       borderRadius: '0.375rem',
                       fontSize: '0.75rem',
                       fontWeight: '500',
-                      border: '1px solid #e5e7eb'
+                      border: '1px solid #bae6fd'
                     }}>
                       {student.classe}
                     </span>
@@ -1321,12 +1340,12 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                     {student.genre && (
                       <span style={{
                         padding: '0.25rem 0.5rem',
-                        backgroundColor: student.genre === 'M' ? '#f0f0f0' : '#f5f5f5',
-                        color: '#333',
+                        backgroundColor: student.genre === 'M' ? '#dbeafe' : '#fce7f3',
+                        color: student.genre === 'M' ? '#1e40af' : '#be185d',
                         borderRadius: '0.375rem',
                         fontSize: '0.75rem',
-                        fontWeight: '500',
-                        border: `1px solid ${student.genre === 'M' ? '#d1d5db' : '#e5e7eb'}`
+                        fontWeight: '600',
+                        border: `1px solid ${student.genre === 'M' ? '#93c5fd' : '#fbcfe8'}`
                       }}>
                         {student.genre === 'M' ? 'M' : 'F'}
                       </span>
@@ -1335,12 +1354,12 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   <td className="table-cell text-center">
                     <span style={{
                       padding: '0.25rem 0.75rem',
-                      backgroundColor: '#f0f9f0',
-                      color: '#166534',
+                      backgroundColor: '#d1fae5',
+                      color: '#065f46',
                       borderRadius: '0.375rem',
                       fontSize: '0.75rem',
-                      fontWeight: '500',
-                      border: '1px solid #bbf7d0'
+                      fontWeight: '600',
+                      border: '1px solid #6ee7b7'
                     }}>
                       Inscrit
                     </span>
@@ -1350,11 +1369,11 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                       <button 
                         style={{
                           padding: '0.5rem',
-                          border: '1px solid #d1d5db',
+                          border: '1px solid #bfdbfe',
                           borderRadius: '0.375rem',
                           backgroundColor: 'white',
                           cursor: 'pointer',
-                          color: '#555',
+                          color: '#3b82f6',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -1362,8 +1381,14 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                         }}
                         title="Modifier"
                         onClick={() => handleEdit(student)}
-                        onMouseOver={(e) => e.target.style.backgroundColor = '#f9fafb'}
-                        onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.backgroundColor = '#eff6ff';
+                          e.currentTarget.style.borderColor = '#3b82f6';
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.backgroundColor = 'white';
+                          e.currentTarget.style.borderColor = '#bfdbfe';
+                        }}
                       >
                         <Edit style={{ width: '14px', height: '14px' }} />
                       </button>
@@ -1382,8 +1407,14 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                         }}
                         title="Supprimer"
                         onClick={() => handleDeleteClick(student)}
-                        onMouseOver={(e) => e.target.style.backgroundColor = '#fef2f2'}
-                        onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.backgroundColor = '#fef2f2';
+                          e.currentTarget.style.borderColor = '#dc2626';
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.backgroundColor = 'white';
+                          e.currentTarget.style.borderColor = '#fecaca';
+                        }}
                       >
                         <Trash2 style={{ width: '14px', height: '14px' }} />
                       </button>
@@ -1427,11 +1458,11 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              backgroundColor: '#fafafa'
+              backgroundColor: '#3b82f6'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <UserPlus style={{ width: '20px', height: '20px', color: '#555' }} />
-                <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '600', color: '#333' }}>
+                <UserPlus style={{ width: '20px', height: '20px', color: 'white' }} />
+                <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '600', color: 'white' }}>
                   Inscrire un Nouvel Étudiant
                 </h2>
               </div>
@@ -1453,7 +1484,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   cursor: saving ? 'not-allowed' : 'pointer'
                 }}
               >
-                <X style={{ width: '18px', height: '18px', color: '#666' }} />
+                <X style={{ width: '18px', height: '18px', color: 'white' }} />
               </button>
             </div>
 
@@ -1808,7 +1839,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                   padding: '0.625rem 1.25rem',
                   border: 'none',
                   borderRadius: '0.375rem',
-                  backgroundColor: saving ? '#9ca3af' : '#555',
+                  backgroundColor: saving ? '#9ca3af' : '#3b82f6',
                   color: 'white',
                   fontSize: '0.875rem',
                   fontWeight: '500',
@@ -1853,7 +1884,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
       <style jsx>{`
         .card {
           background: white;
-          border-radius: 0.5rem;
+          border-radius: 0.75rem;
           border: 1px solid #e5e7eb;
           overflow: hidden;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -1865,14 +1896,14 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: #fafafa;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         .card-title {
           margin: 0;
           font-size: 1.5rem;
           font-weight: 600;
-          color: #333;
+          color: white;
           display: flex;
           align-items: center;
           gap: 0.75rem;
@@ -1889,7 +1920,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
           gap: 0.5rem;
           padding: 0.75rem 1.25rem;
           border: none;
-          border-radius: 0.375rem;
+          border-radius: 0.5rem;
           font-size: 0.875rem;
           font-weight: 500;
           cursor: pointer;
@@ -1897,12 +1928,15 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
         }
 
         .btn-primary {
-          background: #555;
-          color: white;
+          background: white;
+          color: #667eea;
+          border: 2px solid white;
         }
 
         .btn-primary:hover {
-          background: #444;
+          background: rgba(255, 255, 255, 0.9);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .table-container {
@@ -1916,12 +1950,15 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
         }
 
         .table-header {
-          background: #f8f8f8;
+          background: #f8fafc;
           padding: 1rem;
           text-align: left;
           font-weight: 600;
-          color: #333;
-          border-bottom: 1px solid #e5e7eb;
+          color: #1e40af;
+          border-bottom: 2px solid #3b82f6;
+          text-transform: uppercase;
+          font-size: 0.75rem;
+          letter-spacing: 0.05em;
         }
 
         .text-center {
@@ -1930,21 +1967,22 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
 
         .table-row {
           border-bottom: 1px solid #f0f0f0;
+          transition: all 0.2s;
         }
 
         .table-row:hover {
-          background: #fafafa;
+          background: #f8fafc;
         }
 
         .table-cell {
           padding: 1rem;
-          color: #555;
+          color: #374151;
         }
 
         .table-empty {
           padding: 3rem 1rem;
           text-align: center;
-          color: #666;
+          color: #6b7280;
           font-style: italic;
         }
       `}</style>

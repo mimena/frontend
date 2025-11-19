@@ -100,7 +100,7 @@ const SendCodeModal = ({
         setMessage({ type: 'error', text: 'Erreur lors de l\'envoi des emails' });
       }
     } catch (error) {
-      console.error('💥 Erreur envoi:', error);
+      console.error(' Erreur envoi:', error);
       setMessage({ type: 'error', text: 'Erreur: ' + error.message });
     } finally {
       setSending(false);
