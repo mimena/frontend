@@ -1929,7 +1929,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
 
         .btn-primary {
           background: white;
-          color: #667eea;
+          color: #071B7FFF;
           border: 2px solid white;
         }
 

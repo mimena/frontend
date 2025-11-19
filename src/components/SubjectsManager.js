@@ -535,7 +535,7 @@ const SubjectEditModal = ({
         setError('Erreur lors de la modification');
       }
     } catch (error) {
-      console.error('💥 Erreur sauvegarde:', error);
+      console.error(' Erreur sauvegarde:', error);
       setError('Erreur lors de la sauvegarde: ' + error.message);
     } finally {
       setLoading(false);
@@ -1011,7 +1011,7 @@ const SubjectsManager = ({
               alignItems: 'center',
               gap: '0.5rem',
               padding: '0.75rem 1.5rem',
-              backgroundColor: '#8b5cf6',
+              backgroundColor: '#0808B0FF',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
