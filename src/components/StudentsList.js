@@ -1927,7 +1927,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: linear-gradient(135deg, #667eea 0%, #EDECEFFF 100%);
+          background: linear-gradient(135deg, #F9FAFFFF 0%, #EDECEFFF 100%);
         }
 
         .card-title {
