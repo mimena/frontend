@@ -953,7 +953,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
           }}>
             <div style={{
               padding: '1.5rem',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #667eea 0%, #F3F2F4FF 100%)',
               borderRadius: '0.75rem',
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
             }}>
@@ -983,7 +983,6 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                     color: 'rgba(255, 255, 255, 0.8)',
                     marginTop: '0.25rem'
                   }}>
-                    Corps professoral actif
                   </div>
                 </div>
                 <div style={{
@@ -1032,7 +1031,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                     color: 'rgba(255, 255, 255, 0.8)',
                     marginTop: '0.25rem'
                   }}>
-                    Disciplines différentes
+                    
                   </div>
                 </div>
                 <div style={{
@@ -1081,7 +1080,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                     color: 'rgba(255, 255, 255, 0.8)',
                     marginTop: '0.25rem'
                   }}>
-                    Étudiants masculins
+                    
                   </div>
                 </div>
                 <div style={{
@@ -1130,7 +1129,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                     color: 'rgba(255, 255, 255, 0.8)',
                     marginTop: '0.25rem'
                   }}>
-                    Étudiantes féminines
+                
                   </div>
                 </div>
                 <div style={{
