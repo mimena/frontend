@@ -1565,20 +1565,7 @@ return () => { if (monitorId) clearInterval(monitorId); };
                     {apiStatus === 'connected' ? <Wifi style={{ width: '12px', height: '12px' }} /> : <WifiOff style={{ width: '12px', height: '12px' }} />}
                     {apiStatus === 'connected' ? 'En ligne' : 'Hors ligne'}
                   </div>
-                  {selectedYear && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', borderRadius: '0.375rem', fontSize: '0.75rem', fontWeight: '500', 
-                      backgroundColor: isPastYear(selectedYear) ? '#e5e7eb' : 
-                                      isFutureYear(selectedYear) ? '#fef3c7' : '#d1fae5', 
-                      color: isPastYear(selectedYear) ? '#374151' : 
-                             isFutureYear(selectedYear) ? '#92400e' : '#065f46' }}>
-                      <Calendar style={{ width: '12px', height: '12px' }} />
-                      {selectedYear} • {isPastYear(selectedYear) ? 'Consultation' : isFutureYear(selectedYear) ? 'Données vides' : 'Édition'}
-                    </div>
-                  )}
                 </div>
-                <p style={{ fontSize: '0.875rem', color: theme.text.secondary, margin: 0 }}>
-                  Système de Gestion Scolaire • {selectedYear ? `Année ${selectedYear}` : 'Sélectionnez une année'}
-                </p>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
