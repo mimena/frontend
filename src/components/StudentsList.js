@@ -915,7 +915,8 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.matricule.toLowerCase().includes(searchTerm.toLowerCase());
+                         student.matricule.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (student.telephone && student.telephone.includes(searchTerm));
     const matchesClass = selectedClass === '' || student.classe === selectedClass;
     return matchesSearch && matchesClass;
   });
@@ -1176,7 +1177,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
             }} />
             <input
               type="text"
-              placeholder="Rechercher par nom, prénom ou matricule..."
+              placeholder="Rechercher par nom, prénom, matricule ou téléphone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
@@ -1186,7 +1187,8 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                 borderRadius: '0.5rem',
                 fontSize: '0.875rem',
                 transition: 'all 0.2s',
-                outline: 'none'
+                outline: 'none',
+                backgroundColor: 'white'
               }}
               onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
               onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
@@ -1289,6 +1291,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
               <th className="table-header">Matricule</th>
               <th className="table-header">Nom Complet</th>
               <th className="table-header">Classe</th>
+              <th className="table-header">Téléphone</th>
               <th className="table-header text-center">Genre</th>
               <th className="table-header text-center">Statut</th>
               <th className="table-header text-center">Actions</th>
@@ -1297,7 +1300,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
           <tbody style={{ backgroundColor: 'white' }}>
             {filteredStudents.length === 0 ? (
               <tr>
-                <td colSpan="6" className="table-empty">
+                <td colSpan="7" className="table-empty">
                   {searchTerm || selectedClass ? 'Aucun étudiant trouvé avec ces critères.' : 'Aucun étudiant inscrit. Inscrivez votre premier étudiant.'}
                 </td>
               </tr>
@@ -1321,9 +1324,6 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                     <div style={{ fontWeight: '600', color: '#1f2937' }}>
                       {student.prenom} {student.nom}
                     </div>
-                    {student.telephone && (
-                      <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>{student.telephone}</div>
-                    )}
                   </td>
                   <td className="table-cell">
                     <span style={{
@@ -1337,6 +1337,28 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                     }}>
                       {student.classe}
                     </span>
+                  </td>
+                  <td className="table-cell">
+                    {student.telephone ? (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        color: '#374151',
+                        fontSize: '0.875rem'
+                      }}>
+                        <Phone style={{ width: '14px', height: '14px', color: '#6b7280' }} />
+                        {student.telephone}
+                      </div>
+                    ) : (
+                      <span style={{
+                        color: '#9ca3af',
+                        fontSize: '0.75rem',
+                        fontStyle: 'italic'
+                      }}>
+                        Non renseigné
+                      </span>
+                    )}
                   </td>
                   <td className="table-cell text-center">
                     {student.genre && (
@@ -1521,7 +1543,8 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                         padding: '0.625rem',
                         border: '1px solid #d1d5db',
                         borderRadius: '0.375rem',
-                        fontSize: '0.875rem'
+                        fontSize: '0.875rem',
+                        backgroundColor: 'white'
                       }}
                     />
                     {!newStudent.matricule && (
@@ -1569,7 +1592,8 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                             padding: '0.625rem',
                             border: `1px solid ${errors.nom ? '#dc2626' : '#d1d5db'}`,
                             borderRadius: '0.375rem',
-                            fontSize: '0.875rem'
+                            fontSize: '0.875rem',
+                            backgroundColor: 'white'
                           }}
                         />
                         {errors.nom && (
@@ -1603,7 +1627,8 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                             padding: '0.625rem',
                             border: `1px solid ${errors.prenom ? '#dc2626' : '#d1d5db'}`,
                             borderRadius: '0.375rem',
-                            fontSize: '0.875rem'
+                            fontSize: '0.875rem',
+                            backgroundColor: 'white'
                           }}
                         />
                         {errors.prenom && (
@@ -1633,7 +1658,8 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                             border: '1px solid #d1d5db',
                             borderRadius: '0.375rem',
                             fontSize: '0.875rem',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            backgroundColor: 'white'
                           }}
                         >
                           <option value="">Sélectionner</option>
@@ -1665,7 +1691,8 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                             padding: '0.625rem',
                             border: '1px solid #d1d5db',
                             borderRadius: '0.375rem',
-                            fontSize: '0.875rem'
+                            fontSize: '0.875rem',
+                            backgroundColor: 'white'
                           }}
                         />
                       </div>
@@ -1709,7 +1736,8 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                           padding: '0.625rem',
                           border: `1px solid ${errors.classe ? '#dc2626' : '#d1d5db'}`,
                           borderRadius: '0.375rem',
-                          fontSize: '0.875rem'
+                          fontSize: '0.875rem',
+                          backgroundColor: 'white'
                         }}
                       />
                       {errors.classe && (
