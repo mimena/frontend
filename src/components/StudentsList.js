@@ -1927,14 +1927,14 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: linear-gradient(135deg, #0C0C0DFF 100%, #FEFCFEFF 100%);
+          background: linear-gradient(135deg, #667eea 0%, #EDECEFFF 100%);
         }
 
         .card-title {
           margin: 0;
           font-size: 1.5rem;
           font-weight: 600;
-          color: white;
+          color: black;
           display: flex;
           align-items: center;
           gap: 0.75rem;
