@@ -1725,7 +1725,7 @@ return () => { if (monitorId) clearInterval(monitorId); };
                       onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
                     >
                       <LogOut style={{ width: '16px', height: '16px' }} />
-                      Déconnexion
+                    Déconnexion
                     </button>
                   </div>
                 )}
@@ -1941,10 +1941,7 @@ return () => { if (monitorId) clearInterval(monitorId); };
                 {isRetrying ? 'Reconnexion...' : 'Reconnecter l\'API'}
               </button>
             )}
-            <button onClick={handleLogout} className="btn btn-secondary" style={{ fontSize: '0.875rem' }}>
-              <LogOut style={{ width: '16px', height: '16px', marginRight: '0.5rem' }} />
-              Déconnexion
-            </button>
+            {/* SUPPRIMÉ: Le bouton de déconnexion du footer */}
           </div>
           <div style={{ fontSize: '0.75rem', color: theme.text.secondary, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <span>© 2025 EduAdmin Pro - Système de Gestion Scolaire</span>

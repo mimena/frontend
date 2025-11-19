@@ -1073,7 +1073,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
       </div>
 
       <div className="footer">
-        <p>Système de gestion avec historique multi-années • Données sauvegardées localement</p>
+        <p>Système de gestion avec historique multi-années </p>
         {lastUpdate && isCurrentYear && (
           <span className="update-time">
             <Clock size={14} />

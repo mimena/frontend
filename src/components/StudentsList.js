@@ -683,7 +683,8 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                         padding: '0.625rem',
                         border: '1px solid #d1d5db',
                         borderRadius: '0.375rem',
-                        fontSize: '0.875rem'
+                        fontSize: '0.875rem',
+                        backgroundColor: 'white'
                       }}
                     />
                   </div>
@@ -714,7 +715,8 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
                         border: '1px solid #d1d5db',
                         borderRadius: '0.375rem',
                         fontSize: '0.875rem',
-                        resize: 'vertical'
+                        resize: 'vertical',
+                        backgroundColor: 'white'
                       }}
                     />
                   </div>
@@ -1292,7 +1294,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
               <th className="table-header text-center">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody style={{ backgroundColor: 'white' }}>
             {filteredStudents.length === 0 ? (
               <tr>
                 <td colSpan="6" className="table-empty">
@@ -1301,7 +1303,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
               </tr>
             ) : (
               filteredStudents.map(student => (
-                <tr key={student.id} className="table-row">
+                <tr key={student.id} className="table-row" style={{ backgroundColor: 'white' }}>
                   <td className="table-cell">
                     <span style={{
                       padding: '0.25rem 0.75rem',
@@ -1756,7 +1758,8 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                             padding: '0.625rem',
                             border: '1px solid #d1d5db',
                             borderRadius: '0.375rem',
-                            fontSize: '0.875rem'
+                            fontSize: '0.875rem',
+                            backgroundColor: 'white'
                           }}
                         />
                       </div>
@@ -1786,7 +1789,8 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
                             border: '1px solid #d1d5db',
                             borderRadius: '0.375rem',
                             fontSize: '0.875rem',
-                            resize: 'vertical'
+                            resize: 'vertical',
+                            backgroundColor: 'white'
                           }}
                         />
                       </div>
@@ -1928,25 +1932,28 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
         }
 
         .btn-primary {
-          background: white;
-          color: #071B7FFF;
-          border: 2px solid white;
+          background: #3b82f6;
+          color: white;
+          border: 2px solid #3b82f6;
         }
 
         .btn-primary:hover {
-          background: rgba(255, 255, 255, 0.9);
+          background: #2563eb;
+          border-color: #2563eb;
           transform: translateY(-1px);
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .table-container {
           overflow-x: auto;
+          background-color: white;
         }
 
         .data-table {
           width: 100%;
           border-collapse: collapse;
           font-size: 0.875rem;
+          background-color: white;
         }
 
         .table-header {
@@ -1968,6 +1975,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
         .table-row {
           border-bottom: 1px solid #f0f0f0;
           transition: all 0.2s;
+          background-color: white;
         }
 
         .table-row:hover {
@@ -1977,6 +1985,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
         .table-cell {
           padding: 1rem;
           color: #374151;
+          background-color: white;
         }
 
         .table-empty {
@@ -1984,6 +1993,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
           text-align: center;
           color: #6b7280;
           font-style: italic;
+          background-color: white;
         }
       `}</style>
     </div>
