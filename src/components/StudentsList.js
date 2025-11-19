@@ -423,7 +423,7 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
         {/* Contenu */}
         <div style={{ 
           padding: '1.25rem',
-          maxHeight: 'calc(90vh - 120px)',
+          maxHeight: '50vh',
           overflowY: 'auto'
         }}>
           <form onSubmit={handleSubmit}>
