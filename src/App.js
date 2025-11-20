@@ -743,11 +743,11 @@ const YearSelectionScreen = ({ darkMode, onYearSelected, availableYears, schoolY
                 margin: 0
               }}>
                 {isPastYear(selectedYear) ? (
-                  <>📖 Vous serez en <strong style={{ color: '#6b7280' }}>mode consultation</strong> pour l'année <strong>{selectedYear}</strong></>
+                  <> Vous serez en <strong style={{ color: '#6b7280' }}>mode consultation</strong> pour l'année <strong>{selectedYear}</strong></>
                 ) : isFutureYear(selectedYear) ? (
-                  <>🔮 Vous serez en <strong style={{ color: '#f59e0b' }}>mode préparation</strong> - <strong>Aucune donnée</strong> pour l'année <strong>{selectedYear}</strong></>
+                  <> Vous serez en <strong style={{ color: '#f59e0b' }}>mode préparation</strong> - <strong>Aucune donnée</strong> pour l'année <strong>{selectedYear}</strong></>
                 ) : (
-                  <>📝 Vous serez en <strong style={{ color: '#10b981' }}>mode édition</strong> pour l'année <strong>{selectedYear}</strong></>
+                  <> Vous serez en <strong style={{ color: '#10b981' }}>mode édition</strong> pour l'année <strong>{selectedYear}</strong></>
                 )}
               </p>
             </div>

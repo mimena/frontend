@@ -11,10 +11,9 @@ import {
   Filter,
   Calendar,
   Archive,
-  Download,
-  Upload
+  Download
 } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Legend } from 'recharts';
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSelectedYear, availableYears: propAvailableYears }) => {
   const [selectedClass, setSelectedClass] = useState('');
@@ -151,7 +150,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     return { students: [], mobileResults: [] };
   };
 
-  // CORRECTION : Calcul simplifié et plus précis
+  // Calcul simplifié et plus précis
   const calculateGlobalStats = () => {
     const yearData = getYearData();
     const yearStudents = yearData.students;
@@ -446,63 +445,14 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     ];
   };
 
-  // CORRECTION : Fonction d'export CSV qui fonctionne
-  const exportToCSV = () => {
-    try {
-      const stats = calculateGlobalStats();
-      const subjectsPerformance = getSubjectsPerformance();
-      const allClassesStats = getAllClassesStats();
-      
-      let csvContent = "Données Statistiques Scolaires - Année " + selectedYear + "\n";
-      csvContent += "Exporté le: " + new Date().toLocaleDateString('fr-FR') + "\n\n";
-      
-      csvContent += "STATISTIQUES GLOBALES\n";
-      csvContent += "Nombre d'étudiants," + stats.totalStudents + "\n";
-      csvContent += "Étudiants notés," + stats.studentsWithNotes + "\n";
-      csvContent += "Moyenne générale," + stats.classAverage + "/20\n";
-      csvContent += "Taux de réussite," + stats.successRate + "%\n";
-      csvContent += "Corrections mobiles," + stats.mobileCorrections + "\n";
-      csvContent += "Excellent (≥16)," + stats.excellent + "\n";
-      csvContent += "Très Bien (14-16)," + stats.good + "\n";
-      csvContent += "Satisfaisant (10-14)," + stats.satisfactory + "\n";
-      csvContent += "Insuffisant (<10)," + stats.unsatisfactory + "\n\n";
-      
-      csvContent += "PERFORMANCE PAR MATIERE\n";
-      csvContent += "Matière,Étudiants notés,Moyenne (avec coeff),Moyenne /20,Taux participation,Coefficient\n";
-      
-      subjectsPerformance.forEach(item => {
-        csvContent += `"${item.subject}",${item.students},${item.average.toFixed(2)}/${item.maxPoints.toFixed(0)},${item.averageOver20.toFixed(2)}/20,${item.participation}%,${item.coefficient}\n`;
-      });
-      
-      csvContent += "\n";
-      
-      csvContent += "STATISTIQUES PAR CLASSE\n";
-      csvContent += "Classe,Nombre d'étudiants,Étudiants notés,Moyenne,Taux de réussite,Excellent,Très Bien,Satisfaisant,Insuffisant\n";
-      
-      allClassesStats.forEach(classe => {
-        csvContent += `"${classe.classe}",${classe.studentCount},${classe.studentsWithNotes},${classe.average}/20,${classe.successRate}%,${classe.distribution.excellent},${classe.distribution.good},${classe.distribution.satisfactory},${classe.distribution.unsatisfactory}\n`;
-      });
-      
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `statistiques_scolaires_${selectedYear.replace('/', '-')}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Erreur export CSV:', error);
-      alert('Erreur lors de l\'export CSV: ' + error.message);
-    }
-  };
-
-  // CORRECTION : Fonction d'export PDF qui fonctionne
+  // Fonction d'export PDF améliorée avec plus de statistiques
   const exportToPDF = () => {
     try {
       const stats = calculateGlobalStats();
       const subjectsPerformance = getSubjectsPerformance();
+      const allClassesStats = getAllClassesStats();
+      const yearlyComparison = getYearlyComparison();
+      const globalDistribution = getGlobalDistribution();
       
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
@@ -516,56 +466,199 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
         <head>
           <title>Statistiques Scolaires ${selectedYear}</title>
           <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            h1 { color: #333; text-align: center; }
-            h2 { color: #555; border-bottom: 2px solid #eee; padding-bottom: 5px; }
-            .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 20px 0; }
-            .stat-card { background: #f9f9f9; padding: 15px; border-radius: 5px; border-left: 4px solid #0078d4; }
-            .stat-value { font-size: 24px; font-weight: bold; color: #0078d4; }
-            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+            body { 
+              font-family: 'Segoe UI', Arial, sans-serif; 
+              margin: 20px; 
+              color: #333;
+              line-height: 1.4;
+            }
+            .header { 
+              text-align: center; 
+              margin-bottom: 30px;
+              border-bottom: 2px solid #0078d4;
+              padding-bottom: 20px;
+            }
+            h1 { 
+              color: #1a1a1a; 
+              margin: 0 0 10px 0;
+              font-size: 28px;
+            }
+            h2 { 
+              color: #0078d4; 
+              border-bottom: 1px solid #eee; 
+              padding-bottom: 8px;
+              margin: 25px 0 15px 0;
+            }
+            h3 {
+              color: #555;
+              margin: 20px 0 10px 0;
+            }
+            .stats-grid { 
+              display: grid; 
+              grid-template-columns: repeat(4, 1fr); 
+              gap: 15px; 
+              margin: 20px 0; 
+            }
+            .stat-card { 
+              background: #f8f9fa; 
+              padding: 20px; 
+              border-radius: 8px; 
+              border-left: 4px solid #0078d4;
+              text-align: center;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .stat-value { 
+              font-size: 24px; 
+              font-weight: bold; 
+              color: #0078d4; 
+              margin-bottom: 5px;
+            }
+            .stat-label { 
+              font-size: 14px; 
+              color: #666;
+              font-weight: 500;
+            }
+            table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              margin: 20px 0; 
+              font-size: 12px;
+            }
+            th, td { 
+              border: 1px solid #ddd; 
+              padding: 10px; 
+              text-align: left; 
+            }
+            th { 
+              background-color: #0078d4; 
+              color: white;
+              font-weight: 600;
+            }
+            tr:nth-child(even) {
+              background-color: #f8f9fa;
+            }
+            .distribution-grid {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 15px;
+              margin: 20px 0;
+            }
+            .dist-item {
+              background: #f8f9fa;
+              padding: 15px;
+              border-radius: 8px;
+              text-align: center;
+              border-left: 4px solid;
+            }
+            .dist-excellent { border-left-color: #10b981; }
+            .dist-good { border-left-color: #3b82f6; }
+            .dist-satisfactory { border-left-color: #f59e0b; }
+            .dist-unsatisfactory { border-left-color: #ef4444; }
+            .dist-value {
+              font-size: 20px;
+              font-weight: bold;
+              margin-bottom: 5px;
+            }
+            .dist-label {
+              font-size: 12px;
+              color: #666;
+            }
+            .footer { 
+              text-align: center; 
+              margin-top: 40px; 
+              color: #666; 
+              font-size: 12px;
+              border-top: 1px solid #eee;
+              padding-top: 20px;
+            }
+            .summary-section {
+              background: #f0f8ff;
+              padding: 20px;
+              border-radius: 8px;
+              margin: 20px 0;
+            }
+            .class-ranking {
+              margin: 20px 0;
+            }
+            .class-item {
+              display: flex;
+              justify-content: space-between;
+              padding: 8px 0;
+              border-bottom: 1px solid #eee;
+            }
+            .class-name {
+              font-weight: 500;
+            }
+            .class-stats {
+              display: flex;
+              gap: 20px;
+            }
+            .page-break {
+              page-break-before: always;
+            }
             @media print {
               body { margin: 10px; }
               .no-print { display: none; }
+              .stats-grid, .distribution-grid {
+                page-break-inside: avoid;
+              }
+              table {
+                page-break-inside: avoid;
+              }
             }
           </style>
         </head>
         <body>
-          <h1>📊 Tableau de Bord des Performances Académiques</h1>
-          <h2>Année Scolaire: ${selectedYear}</h2>
-          <p>Exporté le: ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
-          
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-value">${stats.totalStudents}</div>
-              <div>Étudiants Total</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value">${stats.classAverage}/20</div>
-              <div>Moyenne Générale</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value">${stats.successRate}%</div>
-              <div>Taux de Réussite</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value">${stats.mobileCorrections}</div>
-              <div>Corrections Mobile</div>
-            </div>
+          <div class="header">
+            <h1>📊 Tableau de Bord des Performances Académiques</h1>
+            <h2>Année Scolaire: ${selectedYear}</h2>
+            <p><strong>Exporté le:</strong> ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
+            ${selectedClass ? `<p><strong>Classe:</strong> ${selectedClass}</p>` : ''}
           </div>
           
-          <h2>Répartition des Niveaux</h2>
-          <table>
-            <tr><th>Niveau</th><th>Nombre d'étudiants</th></tr>
-            <tr><td>Excellent (≥16)</td><td>${stats.excellent}</td></tr>
-            <tr><td>Très Bien (14-16)</td><td>${stats.good}</td></tr>
-            <tr><td>Satisfaisant (10-14)</td><td>${stats.satisfactory}</td></tr>
-            <tr><td>Insuffisant (<10)</td><td>${stats.unsatisfactory}</td></tr>
-          </table>
-          
-          <h2>Performance par Matière</h2>
+          <div class="summary-section">
+            <h2>📈 Résumé Général</h2>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-value">${stats.totalStudents}</div>
+                <div class="stat-label">Étudiants Total</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">${stats.classAverage}/20</div>
+                <div class="stat-label">Moyenne Générale</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">${stats.successRate}%</div>
+                <div class="stat-label">Taux de Réussite</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">${stats.mobileCorrections}</div>
+                <div class="stat-label">Corrections Mobile</div>
+              </div>
+            </div>
+          </div>
+
+          <h2>🎯 Répartition des Niveaux</h2>
+          <div class="distribution-grid">
+            <div class="dist-item dist-excellent">
+              <div class="dist-value">${stats.excellent}</div>
+              <div class="dist-label">Excellent (≥16)</div>
+            </div>
+            <div class="dist-item dist-good">
+              <div class="dist-value">${stats.good}</div>
+              <div class="dist-label">Très Bien (14-16)</div>
+            </div>
+            <div class="dist-item dist-satisfactory">
+              <div class="dist-value">${stats.satisfactory}</div>
+              <div class="dist-label">Satisfaisant (10-14)</div>
+            </div>
+            <div class="dist-item dist-unsatisfactory">
+              <div class="dist-value">${stats.unsatisfactory}</div>
+              <div class="dist-label">Insuffisant (<10)</div>
+            </div>
+          </div>
+
+          <h2>📊 Performance par Matière</h2>
           <table>
             <tr>
               <th>Matière</th>
@@ -573,24 +666,106 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
               <th>Moyenne /20</th>
               <th>Participation</th>
               <th>Coefficient</th>
+              <th>Performance</th>
             </tr>
-            ${subjectsPerformance.map(item => `
+            ${subjectsPerformance.map(item => {
+              let performance = '';
+              const avg = parseFloat(item.averageOver20);
+              if (avg >= 16) performance = 'Excellent 🏆';
+              else if (avg >= 14) performance = 'Très Bien ⭐';
+              else if (avg >= 10) performance = 'Satisfaisant ✓';
+              else performance = 'À améliorer ⚠️';
+              
+              return `
+                <tr>
+                  <td><strong>${item.subject}</strong></td>
+                  <td>${item.students}</td>
+                  <td><strong>${item.averageOver20.toFixed(2)}</strong></td>
+                  <td>${item.participation}%</td>
+                  <td>${item.coefficient}</td>
+                  <td>${performance}</td>
+                </tr>
+              `;
+            }).join('')}
+          </table>
+
+          <div class="page-break"></div>
+
+          <h2>🏆 Classement des Classes</h2>
+          <div class="class-ranking">
+            ${allClassesStats.sort((a, b) => b.average - a.average).map((classe, index) => `
+              <div class="class-item">
+                <div class="class-name">
+                  ${index === 0 ? '🥇 ' : index === 1 ? '🥈 ' : index === 2 ? '🥉 ' : ''}
+                  ${classe.classe}
+                </div>
+                <div class="class-stats">
+                  <span><strong>${classe.average}/20</strong></span>
+                  <span>${classe.successRate}% réussite</span>
+                  <span>${classe.studentCount} étudiants</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <h2>📋 Détail des Classes</h2>
+          <table>
+            <tr>
+              <th>Classe</th>
+              <th>Étudiants</th>
+              <th>Notés</th>
+              <th>Moyenne</th>
+              <th>Réussite</th>
+              <th>Excellent</th>
+              <th>Très Bien</th>
+              <th>Satisfaisant</th>
+              <th>Insuffisant</th>
+            </tr>
+            ${allClassesStats.map(classe => `
               <tr>
-                <td>${item.subject}</td>
-                <td>${item.students}</td>
-                <td>${item.averageOver20.toFixed(2)}</td>
-                <td>${item.participation}%</td>
-                <td>${item.coefficient}</td>
+                <td><strong>${classe.classe}</strong></td>
+                <td>${classe.studentCount}</td>
+                <td>${classe.studentsWithNotes}</td>
+                <td><strong>${classe.average}</strong></td>
+                <td>${classe.successRate}%</td>
+                <td style="color: #10b981;">${classe.distribution.excellent}</td>
+                <td style="color: #3b82f6;">${classe.distribution.good}</td>
+                <td style="color: #f59e0b;">${classe.distribution.satisfactory}</td>
+                <td style="color: #ef4444;">${classe.distribution.unsatisfactory}</td>
               </tr>
             `).join('')}
           </table>
-          
+
+          <div class="page-break"></div>
+
+          <h2>📈 Évolution sur 5 Ans</h2>
+          <table>
+            <tr>
+              <th>Année</th>
+              <th>Étudiants</th>
+              <th>Moyenne</th>
+              <th>Taux de Réussite</th>
+              <th>Statut</th>
+            </tr>
+            ${yearlyComparison.map(year => `
+              <tr>
+                <td><strong>${year.year}</strong></td>
+                <td>${year.students}</td>
+                <td>${year.average.toFixed(2)}/20</td>
+                <td>${year.successRate.toFixed(1)}%</td>
+                <td>${year.year === getCurrentSchoolYear() ? '🟢 En cours' : year.hasData ? '📁 Archivé' : '⚪ Données manquantes'}</td>
+              </tr>
+            `).join('')}
+          </table>
+
           <div class="footer">
-            <p>Système de gestion avec historique multi-années • Données sauvegardées localement</p>
+            <p><strong>Système de gestion avec historique multi-années</strong></p>
+            <p>Généré automatiquement par le Tableau de Bord des Performances Académiques</p>
+            <p>Total des données analysées: ${stats.totalStudents} étudiants, ${subjectsPerformance.length} matières, ${allClassesStats.length} classes</p>
           </div>
-          
-          <button class="no-print" onclick="window.print()" style="position: fixed; top: 20px; right: 20px; padding: 10px 20px; background: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">
-            Imprimer
+
+          <button class="no-print" onclick="window.print()" style="position: fixed; top: 20px; right: 20px; padding: 12px 24px; background: #0078d4; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+            🖨️ Imprimer le Rapport
           </button>
         </body>
         </html>
@@ -680,16 +855,13 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
                 </>
               )}
 
-              <div className="export-dropdown">
-                <button className="btn btn-accent">
-                  <Download size={16} />
-                  Exporter
-                </button>
-                <div className="export-options">
-                  <button onClick={exportToCSV}>📊 Exporter en CSV</button>
-                  <button onClick={exportToPDF}>📄 Exporter en PDF</button>
-                </div>
-              </div>
+              <button 
+                className="btn btn-accent"
+                onClick={exportToPDF}
+              >
+                <Download size={16} />
+                Exporter PDF
+              </button>
             </div>
           </div>
         </div>
@@ -726,7 +898,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
         </div>
       </div>
 
-      {/* Le reste du contenu reste identique mais avec les données corrigées */}
       <div className="content-area">
         {viewMode === 'overview' && (
           <div className="overview-grid">
@@ -772,7 +943,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
               </div>
             </div>
 
-            {/* Les autres sections restent identiques */}
             <div className="chart-section">
               <div className="chart-card">
                 <div className="chart-header">
@@ -858,7 +1028,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
           </div>
         )}
 
-        {/* Les autres vues (history, subjects, classes) restent identiques */}
         {viewMode === 'history' && (
           <div className="history-view">
             <div className="chart-card full-width">
@@ -1141,7 +1310,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
         )}
       </div>
 
-      {/* Le CSS reste identique */}
       <style jsx>{`
         .dashboard-wrapper {
           background: #f8f9fa;
@@ -1262,42 +1430,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
         .btn:disabled {
           background: #ccc;
           cursor: not-allowed;
-        }
-
-        .export-dropdown {
-          position: relative;
-        }
-
-        .export-options {
-          display: none;
-          position: absolute;
-          right: 0;
-          background: white;
-          min-width: 160px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-          border-radius: 6px;
-          overflow: hidden;
-          z-index: 1000;
-          margin-top: 4px;
-        }
-
-        .export-options button {
-          width: 100%;
-          padding: 12px 16px;
-          border: none;
-          background: white;
-          text-align: left;
-          cursor: pointer;
-          font-size: 13px;
-          transition: background 0.2s;
-        }
-
-        .export-options button:hover {
-          background: #f8f9fa;
-        }
-
-        .export-dropdown:hover .export-options {
-          display: block;
         }
 
         .view-navigation {
