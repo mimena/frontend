@@ -445,7 +445,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     ];
   };
 
-  // Fonction d'export PDF améliorée avec plus de statistiques
+  // Fonction d'export PDF améliorée avec couleur simple et sans icônes/emojis
   const exportToPDF = () => {
     try {
       const stats = calculateGlobalStats();
@@ -596,6 +596,13 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
             .page-break {
               page-break-before: always;
             }
+            .performance-indicator {
+              font-weight: 500;
+            }
+            .performance-excellent { color: #10b981; }
+            .performance-good { color: #3b82f6; }
+            .performance-satisfactory { color: #f59e0b; }
+            .performance-needs-improvement { color: #ef4444; }
             @media print {
               body { margin: 10px; }
               .no-print { display: none; }
@@ -610,14 +617,14 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
         </head>
         <body>
           <div class="header">
-            <h1>📊 Tableau de Bord des Performances Académiques</h1>
+            <h1>Tableau de Bord des Performances Académiques</h1>
             <h2>Année Scolaire: ${selectedYear}</h2>
             <p><strong>Exporté le:</strong> ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
             ${selectedClass ? `<p><strong>Classe:</strong> ${selectedClass}</p>` : ''}
           </div>
           
           <div class="summary-section">
-            <h2>📈 Résumé Général</h2>
+            <h2>Résumé Général</h2>
             <div class="stats-grid">
               <div class="stat-card">
                 <div class="stat-value">${stats.totalStudents}</div>
@@ -638,7 +645,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
             </div>
           </div>
 
-          <h2>🎯 Répartition des Niveaux</h2>
+          <h2>Répartition des Niveaux</h2>
           <div class="distribution-grid">
             <div class="dist-item dist-excellent">
               <div class="dist-value">${stats.excellent}</div>
@@ -658,7 +665,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
             </div>
           </div>
 
-          <h2>📊 Performance par Matière</h2>
+          <h2>Performance par Matière</h2>
           <table>
             <tr>
               <th>Matière</th>
@@ -670,11 +677,21 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
             </tr>
             ${subjectsPerformance.map(item => {
               let performance = '';
+              let performanceClass = '';
               const avg = parseFloat(item.averageOver20);
-              if (avg >= 16) performance = 'Excellent 🏆';
-              else if (avg >= 14) performance = 'Très Bien ⭐';
-              else if (avg >= 10) performance = 'Satisfaisant ✓';
-              else performance = 'À améliorer ⚠️';
+              if (avg >= 16) {
+                performance = 'Excellent';
+                performanceClass = 'performance-excellent';
+              } else if (avg >= 14) {
+                performance = 'Très Bien';
+                performanceClass = 'performance-good';
+              } else if (avg >= 10) {
+                performance = 'Satisfaisant';
+                performanceClass = 'performance-satisfactory';
+              } else {
+                performance = 'À améliorer';
+                performanceClass = 'performance-needs-improvement';
+              }
               
               return `
                 <tr>
@@ -683,7 +700,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
                   <td><strong>${item.averageOver20.toFixed(2)}</strong></td>
                   <td>${item.participation}%</td>
                   <td>${item.coefficient}</td>
-                  <td>${performance}</td>
+                  <td><span class="performance-indicator ${performanceClass}">${performance}</span></td>
                 </tr>
               `;
             }).join('')}
@@ -691,13 +708,12 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
 
           <div class="page-break"></div>
 
-          <h2>🏆 Classement des Classes</h2>
+          <h2>Classement des Classes</h2>
           <div class="class-ranking">
             ${allClassesStats.sort((a, b) => b.average - a.average).map((classe, index) => `
               <div class="class-item">
                 <div class="class-name">
-                  ${index === 0 ? '🥇 ' : index === 1 ? '🥈 ' : index === 2 ? '🥉 ' : ''}
-                  ${classe.classe}
+                  ${index + 1}. ${classe.classe}
                 </div>
                 <div class="class-stats">
                   <span><strong>${classe.average}/20</strong></span>
@@ -708,7 +724,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
             `).join('')}
           </div>
 
-          <h2>📋 Détail des Classes</h2>
+          <h2>Détail des Classes</h2>
           <table>
             <tr>
               <th>Classe</th>
@@ -738,7 +754,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
 
           <div class="page-break"></div>
 
-          <h2>📈 Évolution sur 5 Ans</h2>
+          <h2>Évolution sur 5 Ans</h2>
           <table>
             <tr>
               <th>Année</th>
@@ -753,7 +769,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
                 <td>${year.students}</td>
                 <td>${year.average.toFixed(2)}/20</td>
                 <td>${year.successRate.toFixed(1)}%</td>
-                <td>${year.year === getCurrentSchoolYear() ? '🟢 En cours' : year.hasData ? '📁 Archivé' : '⚪ Données manquantes'}</td>
+                <td>${year.year === getCurrentSchoolYear() ? 'En cours' : year.hasData ? 'Archivé' : 'Données manquantes'}</td>
               </tr>
             `).join('')}
           </table>
@@ -765,7 +781,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
           </div>
 
           <button class="no-print" onclick="window.print()" style="position: fixed; top: 20px; right: 20px; padding: 12px 24px; background: #0078d4; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
-            🖨️ Imprimer le Rapport
+            Imprimer le Rapport
           </button>
         </body>
         </html>
@@ -1087,10 +1103,10 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
                           <div className="bar-segment unsatisfactory" style={{ width: `${(yearStats.unsatisfactory / yearStats.totalStudents * 100)}%` }}></div>
                         </div>
                         <div className="distribution-legend">
-                          <span>🟢 {yearStats.excellent}</span>
-                          <span>🔵 {yearStats.good}</span>
-                          <span>🟡 {yearStats.satisfactory}</span>
-                          <span>🔴 {yearStats.unsatisfactory}</span>
+                          <span>Excellent: {yearStats.excellent}</span>
+                          <span>Très Bien: {yearStats.good}</span>
+                          <span>Satisfaisant: {yearStats.satisfactory}</span>
+                          <span>Insuffisant: {yearStats.unsatisfactory}</span>
                         </div>
                       </>
                     ) : (

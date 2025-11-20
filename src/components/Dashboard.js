@@ -15,6 +15,159 @@ import {
   Building
 } from 'lucide-react';
 
+// ===== MODAL DE CONFIRMATION DE SUPPRESSION =====
+const DeleteConfirmationModal = ({ 
+  teacher, 
+  isOpen, 
+  onClose, 
+  onConfirm 
+}) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    try {
+      await onConfirm(teacher.id);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen || !teacher) return null;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        width: '90%',
+        maxWidth: '500px',
+        padding: '2rem',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+      }}>
+        {/* Icone d'avertissement */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginBottom: '1.5rem'
+        }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            backgroundColor: '#fef2f2',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '2px solid #fecaca'
+          }}>
+            <AlertCircle style={{ width: '40px', height: '40px', color: '#dc2626' }} />
+          </div>
+        </div>
+
+        {/* Titre et message */}
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <h3 style={{
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            color: '#1f2937',
+            margin: '0 0 1rem 0'
+          }}>
+            Confirmer la suppression
+          </h3>
+          <p style={{
+            fontSize: '1rem',
+            color: '#6b7280',
+            lineHeight: '1.5',
+            margin: 0
+          }}>
+            Êtes-vous sûr de vouloir supprimer l'enseignant{' '}
+            <strong style={{ color: '#dc2626' }}>{teacher.name}</strong> ?
+            Cette action est irréversible.
+          </p>
+        </div>
+
+        {/* Boutons d'action */}
+        <div style={{
+          display: 'flex',
+          gap: '1rem',
+          justifyContent: 'center'
+        }}>
+          <button
+            onClick={onClose}
+            disabled={loading}
+            style={{
+              padding: '0.75rem 2rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              backgroundColor: 'white',
+              color: '#374151',
+              fontSize: '1rem',
+              fontWeight: '500',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1,
+              minWidth: '120px'
+            }}
+          >
+            Annuler
+          </button>
+          
+          <button
+            onClick={handleConfirm}
+            disabled={loading}
+            style={{
+              padding: '0.75rem 2rem',
+              border: 'none',
+              borderRadius: '8px',
+              backgroundColor: '#dc2626',
+              color: 'white',
+              fontSize: '1rem',
+              fontWeight: '500',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1,
+              minWidth: '120px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            {loading ? (
+              <>
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid rgba(255,255,255,0.3)',
+                  borderTop: '2px solid white',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }} />
+                Suppression...
+              </>
+            ) : (
+              <>
+                <Trash2 style={{ width: '16px', height: '16px' }} />
+                Supprimer
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ===== MODAL MODIFICATION ENSEIGNANT =====
 const TeacherEditModal = ({ 
   teacher, 
@@ -486,7 +639,8 @@ const TeachersManager = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
+  const [deletingTeacher, setDeletingTeacher] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [newTeacher, setNewTeacher] = useState({ 
     name: '', 
     email: '',
@@ -565,18 +719,32 @@ const TeachersManager = ({
     setEditingTeacher(null);
   };
 
-  const handleDelete = async (teacher) => {
-    console.log('Tentative suppression enseignant:', teacher);
-    setDeletingId(teacher.id);
+  const handleDeleteClick = (teacher) => {
+    console.log('Ouverture modal suppression pour:', teacher);
+    setDeletingTeacher(teacher);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async (teacherId) => {
+    console.log('Tentative suppression enseignant ID:', teacherId);
     
     try {
-      const success = await onDeleteTeacher(teacher.id);
-      if (!success) {
-        console.error('Échec suppression enseignant');
+      const success = await onDeleteTeacher(teacherId);
+      if (success) {
+        console.log('✅ Suppression réussie');
+        setShowDeleteModal(false);
+        setDeletingTeacher(null);
+      } else {
+        console.error('❌ Échec suppression enseignant');
       }
-    } finally {
-      setDeletingId(null);
+    } catch (error) {
+      console.error('💥 Erreur suppression:', error);
     }
+  };
+
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeletingTeacher(null);
   };
 
   return (
@@ -1336,16 +1504,14 @@ const TeachersManager = ({
                         </button>
                         
                         <button 
-                          onClick={() => handleDelete(teacher)}
-                          disabled={deletingId === teacher.id}
+                          onClick={() => handleDeleteClick(teacher)}
                           style={{
                             padding: '0.75rem',
                             border: '1px solid #fecaca',
                             borderRadius: '8px',
-                            backgroundColor: deletingId === teacher.id ? '#fecaca' : 'white',
+                            backgroundColor: 'white',
                             color: '#dc2626',
-                            cursor: deletingId === teacher.id ? 'not-allowed' : 'pointer',
-                            opacity: deletingId === teacher.id ? 0.6 : 1,
+                            cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -1353,18 +1519,7 @@ const TeachersManager = ({
                           }}
                           title="Supprimer"
                         >
-                          {deletingId === teacher.id ? (
-                            <div style={{
-                              width: '16px',
-                              height: '16px',
-                              border: '2px solid rgba(220,38,38,0.3)',
-                              borderTop: '2px solid #dc2626',
-                              borderRadius: '50%',
-                              animation: 'spin 1s linear infinite'
-                            }} />
-                          ) : (
-                            <Trash2 style={{ width: '16px', height: '16px' }} />
-                          )}
+                          <Trash2 style={{ width: '16px', height: '16px' }} />
                         </button>
                       </div>
                     </td>
@@ -1382,6 +1537,14 @@ const TeachersManager = ({
         isOpen={showEditModal}
         onClose={handleCloseEditModal}
         onSave={onEditTeacher}
+      />
+
+      {/* Modal de confirmation de suppression */}
+      <DeleteConfirmationModal
+        teacher={deletingTeacher}
+        isOpen={showDeleteModal}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleDeleteConfirm}
       />
 
       <style>{`

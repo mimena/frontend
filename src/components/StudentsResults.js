@@ -273,11 +273,11 @@ const StudentResults = () => {
 
   const getAppreciation = (score) => {
     if (isNaN(score) || score === 0) return '—';
-    if (score >= 16) return '🌟 Excellent';
-    if (score >= 14) return '👍 Très bien';
-    if (score >= 12) return '✓ Bien';
-    if (score >= 10) return '→ Assez bien';
-    return '⚠️ À améliorer';
+    if (score >= 16) return 'Excellent';
+    if (score >= 14) return 'Très bien';
+    if (score >= 12) return 'Bien';
+    if (score >= 10) return 'Assez bien';
+    return ' À améliorer';
   };
 
   const formatScoreSur20 = (score) => {
@@ -456,7 +456,7 @@ const StudentResults = () => {
       </head>
       <body>
         <div class="header">
-          <h1>📚 Bulletin de Classe</h1>
+          <h1> Bulletin de Classe</h1>
           <p><strong>${classe.name}</strong></p>
           <p>${classe.totalStudents} étudiant${classe.totalStudents > 1 ? 's' : ''} • ${new Date().toLocaleDateString('fr-FR')}</p>
         </div>
@@ -628,7 +628,7 @@ const StudentResults = () => {
       </head>
       <body>
         <div class="header">
-          <h1>📚 BULLETIN DE NOTES</h1>
+          <h1> BULLETIN DE NOTES</h1>
           <div class="student-info">
             <p><strong>Nom:</strong> ${student.nom} ${student.prenom}</p>
             <p><strong>Matricule:</strong> ${student.matricule}</p>
@@ -775,24 +775,7 @@ const StudentResults = () => {
                 </div>
               </div>
               
-              <div className="card-body">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280' }}>
-                    <Users style={{ width: '16px', height: '16px' }} />
-                    <span>{classe.totalCorrections} corrections</span>
-                  </div>
-                  <div style={{ 
-                    padding: '0.5rem 0.75rem', 
-                    borderRadius: '0.375rem', 
-                    backgroundColor: getScoreBgColor(classe.averageScore),
-                    color: getScoreColor(classe.averageScore),
-                    fontWeight: '600',
-                    fontSize: '0.875rem'
-                  }}>
-                    {formatScoreAvecCoefficient(classe.averageScore, classe.totalCoefficients)}
-                  </div>
-                </div>
-              </div>
+              {/* SUPPRESSION de la section avec le nombre de corrections et la note */}
             </div>
           ))}
         </div>
@@ -853,7 +836,7 @@ const StudentResults = () => {
                     {selectedClass.name}
                   </h2>
                   <p style={{ margin: '0.25rem 0 0 0', fontSize: '1rem', color: '#6b7280' }}>
-                    {selectedClass.totalStudents} étudiant{selectedClass.totalStudents > 1 ? 's' : ''} • {selectedClass.totalCorrections} corrections
+                    {selectedClass.totalStudents} étudiant{selectedClass.totalStudents > 1 ? 's' : ''}
                   </p>
                 </div>
               </div>

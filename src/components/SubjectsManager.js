@@ -1,6 +1,171 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Plus, Edit2, Trash2, Save, X, AlertCircle, CheckCircle, Wifi, WifiOff, Send, Mail, Award, TrendingUp, Users } from 'lucide-react';
 
+// ===== MODAL DE CONFIRMATION DE SUPPRESSION SIMPLIFIÉE =====
+const DeleteConfirmationModal = ({ subject, isOpen, onClose, onConfirm, loading }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 2000,
+      padding: '1rem'
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '0.75rem',
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+        width: '100%',
+        maxWidth: '400px',
+        overflow: 'hidden'
+      }}>
+        {/* Header */}
+        <div style={{
+          padding: '1.5rem',
+          borderBottom: '1px solid #e5e7eb',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          backgroundColor: '#fef2f2'
+        }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            backgroundColor: '#fee2e2',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <AlertCircle style={{ width: '20px', height: '20px', color: '#dc2626' }} />
+          </div>
+          <div>
+            <h3 style={{ 
+              margin: 0, 
+              fontSize: '1.25rem', 
+              fontWeight: '600', 
+              color: '#1f2937' 
+            }}>
+              Confirmer la suppression
+            </h3>
+            <p style={{ 
+              margin: '0.25rem 0 0 0', 
+              fontSize: '0.875rem', 
+              color: '#6b7280' 
+            }}>
+              Voulez-vous vraiment supprimer cette matière ?
+            </p>
+          </div>
+        </div>
+
+        {/* Contenu SIMPLIFIÉ */}
+        <div style={{ padding: '1.5rem' }}>
+          <div style={{ 
+            backgroundColor: '#f8f9fa', 
+            padding: '1rem', 
+            borderRadius: '0.5rem',
+            border: '1px solid #e9ecef',
+            textAlign: 'center'
+          }}>
+            <div style={{ marginBottom: '0.5rem' }}>
+              <span style={{ fontWeight: '600', color: '#374151', fontSize: '1rem' }}>
+                {subject?.name}
+              </span>
+            </div>
+            <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+              Code: {subject?.code} • Coefficient: {subject?.coefficient}
+            </div>
+          </div>
+
+          <div style={{ 
+            marginTop: '1rem',
+            padding: '0.75rem',
+            backgroundColor: '#fffbeb',
+            border: '1px solid #fed7aa',
+            borderRadius: '0.5rem',
+            textAlign: 'center'
+          }}>
+            <p style={{ 
+              margin: 0, 
+              fontSize: '0.75rem', 
+              color: '#92400e',
+              lineHeight: '1.4'
+            }}>
+              ⚠️ Cette action est irréversible
+            </p>
+          </div>
+        </div>
+
+        {/* Actions SIMPLIFIÉES */}
+        <div style={{
+          padding: '1.25rem 1.5rem',
+          borderTop: '1px solid #e5e7eb',
+          backgroundColor: '#fafafa',
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '0.75rem'
+        }}>
+          <button
+            onClick={onClose}
+            disabled={loading}
+            style={{
+              padding: '0.625rem 1.5rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.5rem',
+              backgroundColor: 'white',
+              color: '#374151',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s',
+              opacity: loading ? 0.6 : 1,
+              minWidth: '80px'
+            }}
+            onMouseOver={(e) => !loading && (e.target.style.backgroundColor = '#f9fafb')}
+            onMouseOut={(e) => !loading && (e.target.style.backgroundColor = 'white')}
+          >
+            Annuler
+          </button>
+          
+          <button
+            onClick={() => onConfirm(subject.id)}
+            disabled={loading}
+            style={{
+              padding: '0.625rem 1.5rem',
+              border: 'none',
+              borderRadius: '0.5rem',
+              backgroundColor: loading ? '#9ca3af' : '#dc2626',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s',
+              opacity: loading ? 0.6 : 1,
+              minWidth: '80px',
+              justifyContent: 'center'
+            }}
+            onMouseOver={(e) => !loading && (e.target.style.backgroundColor = '#b91c1c')}
+            onMouseOut={(e) => !loading && (e.target.style.backgroundColor = '#dc2626')}
+          >
+            {loading ? '...' : 'OK'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ===== MODAL ENVOI CODE PAR EMAIL =====
 const SendCodeModal = ({ 
   subject, 
@@ -843,6 +1008,8 @@ const SubjectsManager = ({
   const [showEditModal, setShowEditModal] = useState(false);
   const [sendingSubject, setSendingSubject] = useState(null);
   const [showSendModal, setShowSendModal] = useState(false);
+  const [deletingSubject, setDeletingSubject] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [newSubject, setNewSubject] = useState({ 
     name: '', 
@@ -900,16 +1067,29 @@ const SubjectsManager = ({
     setSendingSubject(null);
   };
 
-  const handleDelete = async (subject) => {
-    setDeletingId(subject.id);
+  const handleDeleteClick = (subject) => {
+    setDeletingSubject(subject);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async (subjectId) => {
+    setDeletingId(subjectId);
     
     try {
-      const success = await onDeleteSubject(subject.id);
-      if (!success) {
-        console.error('Échec suppression matière');
+      const success = await onDeleteSubject(subjectId);
+      if (success) {
+        setShowDeleteModal(false);
+        setDeletingSubject(null);
       }
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (!deletingId) {
+      setShowDeleteModal(false);
+      setDeletingSubject(null);
     }
   };
 
@@ -1492,7 +1672,7 @@ const SubjectsManager = ({
                       </button>
                       
                       <button 
-                        onClick={() => handleDelete(subject)}
+                        onClick={() => handleDeleteClick(subject)}
                         disabled={isOffline || deletingId === subject.id}
                         className="btn-icon btn-delete"
                         title="Supprimer"
@@ -1546,6 +1726,15 @@ const SubjectsManager = ({
         isOpen={showSendModal}
         onClose={handleCloseSendModal}
         onSend={onSendCode}
+      />
+
+      {/* Modal de confirmation de suppression SIMPLIFIÉE */}
+      <DeleteConfirmationModal
+        subject={deletingSubject}
+        isOpen={showDeleteModal}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+        loading={deletingId !== null}
       />
 
       <style>{`

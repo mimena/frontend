@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Users, Plus, Search, Edit, Trash2, Save, X, UserPlus, User, Calendar, Phone, MapPin, AlertTriangle, CheckCircle, BookOpen } from 'lucide-react';
 
-// Modal de confirmation de suppression
+// Modal de confirmation de suppression SIMPLIFIÉE
 const DeleteConfirmationModal = ({ student, isOpen, onClose, onConfirm, loading }) => {
   if (!isOpen) return null;
 
@@ -24,7 +24,7 @@ const DeleteConfirmationModal = ({ student, isOpen, onClose, onConfirm, loading 
         borderRadius: '0.75rem',
         boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
         width: '100%',
-        maxWidth: '480px',
+        maxWidth: '400px',
         overflow: 'hidden'
       }}>
         {/* Header */}
@@ -61,74 +61,56 @@ const DeleteConfirmationModal = ({ student, isOpen, onClose, onConfirm, loading 
               fontSize: '0.875rem', 
               color: '#6b7280' 
             }}>
-              Cette action est irréversible
+              Voulez-vous vraiment supprimer cet étudiant ?
             </p>
           </div>
         </div>
 
-        {/* Contenu */}
+        {/* Contenu SIMPLIFIÉ */}
         <div style={{ padding: '1.5rem' }}>
           <div style={{ 
             backgroundColor: '#f8f9fa', 
             padding: '1rem', 
             borderRadius: '0.5rem',
-            border: '1px solid #e9ecef'
+            border: '1px solid #e9ecef',
+            textAlign: 'center'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <User style={{ width: '16px', height: '16px', color: '#6b7280' }} />
-              <span style={{ fontWeight: '600', color: '#374151' }}>Étudiant à supprimer :</span>
+            <div style={{ marginBottom: '0.5rem' }}>
+              <span style={{ fontWeight: '600', color: '#374151', fontSize: '1rem' }}>
+                {student?.prenom} {student?.nom}
+              </span>
             </div>
-            <div style={{ paddingLeft: '1.75rem' }}>
-              <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: '#374151' }}>
-                <strong>Nom :</strong> {student?.prenom} {student?.nom}
-              </p>
-              <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: '#374151' }}>
-                <strong>Matricule :</strong> {student?.matricule}
-              </p>
-              <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: '#374151' }}>
-                <strong>Classe :</strong> {student?.classe}
-              </p>
+            <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+              Matricule: {student?.matricule} • Classe: {student?.classe}
             </div>
           </div>
 
           <div style={{ 
             marginTop: '1rem',
-            padding: '1rem',
+            padding: '0.75rem',
             backgroundColor: '#fffbeb',
             border: '1px solid #fed7aa',
-            borderRadius: '0.5rem'
+            borderRadius: '0.5rem',
+            textAlign: 'center'
           }}>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <AlertTriangle style={{ width: '16px', height: '16px', color: '#d97706', flexShrink: 0 }} />
-              <div>
-                <p style={{ 
-                  margin: 0, 
-                  fontSize: '0.875rem', 
-                  color: '#92400e',
-                  fontWeight: '500'
-                }}>
-                  Attention
-                </p>
-                <p style={{ 
-                  margin: '0.25rem 0 0 0', 
-                  fontSize: '0.75rem', 
-                  color: '#92400e',
-                  lineHeight: '1.4'
-                }}>
-                  La suppression de cet étudiant entraînera également la perte de toutes ses notes et données associées. Cette action ne peut pas être annulée.
-                </p>
-              </div>
-            </div>
+            <p style={{ 
+              margin: 0, 
+              fontSize: '0.75rem', 
+              color: '#92400e',
+              lineHeight: '1.4'
+            }}>
+              ⚠️ Cette action est irréversible
+            </p>
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Actions SIMPLIFIÉES */}
         <div style={{
           padding: '1.25rem 1.5rem',
           borderTop: '1px solid #e5e7eb',
           backgroundColor: '#fafafa',
           display: 'flex',
-          justifyContent: 'flex-end',
+          justifyContent: 'center',
           gap: '0.75rem'
         }}>
           <button
@@ -144,7 +126,8 @@ const DeleteConfirmationModal = ({ student, isOpen, onClose, onConfirm, loading 
               fontWeight: '500',
               cursor: loading ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s',
-              opacity: loading ? 0.6 : 1
+              opacity: loading ? 0.6 : 1,
+              minWidth: '80px'
             }}
             onMouseOver={(e) => !loading && (e.target.style.backgroundColor = '#f9fafb')}
             onMouseOut={(e) => !loading && (e.target.style.backgroundColor = 'white')}
@@ -168,13 +151,14 @@ const DeleteConfirmationModal = ({ student, isOpen, onClose, onConfirm, loading 
               alignItems: 'center',
               gap: '0.5rem',
               transition: 'all 0.2s',
-              opacity: loading ? 0.6 : 1
+              opacity: loading ? 0.6 : 1,
+              minWidth: '80px',
+              justifyContent: 'center'
             }}
             onMouseOver={(e) => !loading && (e.target.style.backgroundColor = '#b91c1c')}
             onMouseOut={(e) => !loading && (e.target.style.backgroundColor = '#dc2626')}
           >
-            <Trash2 style={{ width: '14px', height: '14px' }} />
-            {loading ? 'Suppression...' : 'Supprimer définitivement'}
+            {loading ? '...' : 'OK'}
           </button>
         </div>
       </div>
@@ -780,7 +764,7 @@ const EditStudentModal = ({ student, isOpen, onClose, onSave }) => {
   );
 };
 
-// Composant principal StudentsList
+// Composant principal StudentsList (inchangé)
 const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, subjects }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -1870,7 +1854,7 @@ const StudentsList = ({ students, onAddStudent, onEditStudent, onDeleteStudent, 
         onSave={handleSaveEdit}
       />
 
-      {/* Modal de confirmation de suppression */}
+      {/* Modal de confirmation de suppression SIMPLIFIÉE */}
       <DeleteConfirmationModal
         student={studentToDelete}
         isOpen={showDeleteModal}

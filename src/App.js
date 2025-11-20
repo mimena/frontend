@@ -173,7 +173,7 @@ const SchoolYearConfig = ({ darkMode, onSave, onCancel, currentConfig }) => {
           justifyContent: 'space-between'
         }}>
           <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: theme.text.primary, margin: 0 }}>
-            ⚙️ Configuration de l'année scolaire
+             Configuration de l'année scolaire
           </h3>
           <button
             onClick={onCancel}
@@ -199,7 +199,7 @@ const SchoolYearConfig = ({ darkMode, onSave, onCancel, currentConfig }) => {
             border: `1px solid ${darkMode ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)'}`
           }}>
             <p style={{ fontSize: '0.875rem', color: theme.text.secondary, margin: 0, textAlign: 'center' }}>
-              📅 Définissez les dates de début et de fin de l'année scolaire
+               Définissez les dates de début et de fin de l'année scolaire
             </p>
           </div>
 
@@ -207,7 +207,7 @@ const SchoolYearConfig = ({ darkMode, onSave, onCancel, currentConfig }) => {
             {/* Début de l'année scolaire */}
             <div>
               <h4 style={{ fontSize: '1rem', fontWeight: '600', color: theme.text.primary, marginBottom: '1rem' }}>
-                🎒 Début de l'année scolaire
+                 Début de l'année scolaire
               </h4>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
@@ -330,7 +330,7 @@ const SchoolYearConfig = ({ darkMode, onSave, onCancel, currentConfig }) => {
               border: `1px solid ${darkMode ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)'}`
             }}>
               <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: theme.text.primary, marginBottom: '0.5rem' }}>
-                👁️ Aperçu de la configuration
+                Aperçu de la configuration
               </h4>
               <p style={{ fontSize: '0.75rem', color: theme.text.secondary, margin: 0 }}>
                 L'année scolaire commence le <strong>{config.startDay} {months[config.startMonth]}</strong><br/>
@@ -507,9 +507,9 @@ const YearSelectionScreen = ({ darkMode, onYearSelected, availableYears, schoolY
               margin: 0,
               textAlign: 'center'
             }}>
-              📚 <strong>Mode consultation seule</strong> pour les années antérieures<br/>
-              📝 <strong>Mode édition complète</strong> pour l'année en cours {currentYear}<br/>
-              🔮 <strong>Mode préparation (données vides)</strong> pour les années futures
+              <strong>Mode consultation seule</strong> pour les années antérieures<br/>
+              <strong>Mode édition complète</strong> pour l'année en cours {currentYear}<br/>
+             <strong>Mode préparation (données vides)</strong> pour les années futures
             </p>
           </div>
 
@@ -1389,8 +1389,8 @@ return () => { if (monitorId) clearInterval(monitorId); };
       const PUBLIC_KEY = 'xPPsPKFCChFmVeSce';
   
       if (SERVICE_ID === 'YOUR_SERVICE_ID' || TEMPLATE_ID === 'YOUR_TEMPLATE_ID' || PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
-        setError('⚠️ EmailJS non configuré. Remplacez les clés dans App.js');
-        console.error('❌ Clés EmailJS non configurées');
+        setError('EmailJS non configuré. Remplacez les clés dans App.js');
+        console.error(' Clés EmailJS non configurées');
         return false;
       }
   
@@ -1412,11 +1412,11 @@ return () => { if (monitorId) clearInterval(monitorId); };
   
       await Promise.all(emailPromises);
       
-      console.log('✅ Tous les emails envoyés avec succès');
+      console.log(' Tous les emails envoyés avec succès');
       setSuccess(`Code "${subjectCode}" envoyé à ${recipients.length} enseignant(s) ✓`);
       return true;
     } catch (error) {
-      console.error('❌ Erreur lors de l\'envoi des emails:', error);
+      console.error(' Erreur lors de l\'envoi des emails:', error);
       console.error('Détails:', error.text || error.message);
       setError('Erreur lors de l\'envoi des emails: ' + (error.text || error.message));
       return false;
