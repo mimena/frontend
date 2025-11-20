@@ -1170,9 +1170,6 @@ return () => { if (monitorId) clearInterval(monitorId); };
     }
     
     if (apiStatus !== 'connected') { setError('API non disponible. Impossible de supprimer la matière.'); return false; }
-    const subjectToDelete = subjects.find(s => s.id === subjectId);
-    const subjectName = subjectToDelete ? subjectToDelete.name : 'cette matière';
-    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer "${subjectName}" ?\n\nCette action est irréversible.`)) return false;
     try {
       setLoading(true);
       setError(null);
@@ -1258,9 +1255,6 @@ return () => { if (monitorId) clearInterval(monitorId); };
     }
     
     if (apiStatus !== 'connected') { setError('API non disponible. Impossible de supprimer l\'étudiant.'); return false; }
-    const studentToDelete = students.find(s => s.id === studentId);
-    const studentName = studentToDelete ? `${studentToDelete.nom} ${studentToDelete.prenom}` : 'cet étudiant';
-    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer "${studentName}" ?\n\nCette action est irréversible.`)) return false;
     try {
       setLoading(true);
       setError(null);
@@ -1346,9 +1340,6 @@ return () => { if (monitorId) clearInterval(monitorId); };
     }
     
     if (apiStatus !== 'connected') { setError('API non disponible. Impossible de supprimer l\'enseignant.'); return false; }
-    const teacherToDelete = teachers.find(t => t.id === teacherId);
-    const teacherName = teacherToDelete ? teacherToDelete.name : 'cet enseignant';
-    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer "${teacherName}" ?\n\nCette action est irréversible.`)) return false;
     try {
       setLoading(true);
       setError(null);

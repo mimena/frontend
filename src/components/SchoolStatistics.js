@@ -150,15 +150,87 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     return { students: [], mobileResults: [] };
   };
 
-  // Calcul simplifié et plus précis
+  // NOUVELLE FONCTION: Calcul des moyennes avec coefficients comme dans le premier code
+  const calculateStudentAverages = (studentsData, resultsData) => {
+    const studentsMap = {};
+    
+    // Initialiser les étudiants
+    studentsData.forEach(student => {
+      studentsMap[student.matricule] = {
+        matricule: student.matricule,
+        nom: student.nom,
+        prenom: student.prenom,
+        classe: student.classe,
+        subjects: {},
+        totalCoefficients: 0,
+        totalWeightedScore: 0,
+        averageScore: 0
+      };
+    });
+
+    // Traiter les résultats mobiles
+    resultsData.forEach(result => {
+      const matricule = result.student_matricule;
+      const subjectName = result.subject_name || 'Matière inconnue';
+      const coefficient = parseFloat(result.subject_coefficient) || 1.0;
+      let finalNote = parseFloat(result.score);
+
+      if (isNaN(finalNote) || finalNote < 0 || finalNote > 20) {
+        return;
+      }
+
+      if (!studentsMap[matricule]) {
+        return;
+      }
+
+      if (!studentsMap[matricule].subjects[subjectName]) {
+        studentsMap[matricule].subjects[subjectName] = {
+          name: subjectName,
+          scores: [],
+          coefficient: coefficient,
+          lastScore: 0
+        };
+      }
+
+      // Ajouter la note et garder la dernière
+      studentsMap[matricule].subjects[subjectName].scores.push(finalNote);
+      studentsMap[matricule].subjects[subjectName].lastScore = finalNote;
+    });
+
+    // Calculer les moyennes avec coefficients
+    Object.values(studentsMap).forEach(student => {
+      let totalWeightedScore = 0;
+      let totalCoefficients = 0;
+
+      Object.values(student.subjects).forEach(subject => {
+        if (subject.scores.length > 0) {
+          const weightedScore = subject.lastScore * subject.coefficient;
+          totalWeightedScore += weightedScore;
+          totalCoefficients += subject.coefficient;
+        }
+      });
+
+      student.totalCoefficients = totalCoefficients;
+      student.totalWeightedScore = totalWeightedScore;
+      student.averageScore = totalCoefficients > 0 ? totalWeightedScore / totalCoefficients : 0;
+      student.totalSubjects = Object.keys(student.subjects).length;
+    });
+
+    return studentsMap;
+  };
+
+  // FONCTION CORRIGÉE: Calcul des statistiques globales
   const calculateGlobalStats = () => {
     const yearData = getYearData();
     const yearStudents = yearData.students;
     const yearResults = yearData.mobileResults;
 
+    // Calculer les moyennes avec coefficients
+    const studentsWithAverages = calculateStudentAverages(yearStudents, yearResults);
+    
     const filteredStudents = selectedClass 
-      ? yearStudents.filter(s => s.classe === selectedClass)
-      : yearStudents;
+      ? Object.values(studentsWithAverages).filter(s => s.classe === selectedClass)
+      : Object.values(studentsWithAverages);
 
     if (filteredStudents.length === 0) {
       return {
@@ -169,49 +241,15 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
         satisfactory: 0,
         unsatisfactory: 0,
         successRate: 0,
-        mobileCorrections: 0
+        mobileCorrections: 0,
+        studentsWithNotes: 0
       };
     }
 
-    let totalAverage = 0;
-    let studentsWithNotes = 0;
-    const averages = [];
-
-    filteredStudents.forEach(student => {
-      const traditionalNotes = student.notes || {};
-      const studentMobileResults = yearResults.filter(
-        result => result.student_matricule === student.matricule
-      );
-      
-      // Fusion des notes
-      const allNotes = { ...traditionalNotes };
-      studentMobileResults.forEach(result => {
-        allNotes[result.subject_code] = result.score;
-      });
-
-      // Calcul moyenne étudiant
-      let studentTotalPoints = 0;
-      let studentTotalCoeff = 0;
-      let hasNotes = false;
-
-      subjects.forEach(subject => {
-        const note = allNotes[subject.code];
-        if (note !== undefined && note !== null) {
-          studentTotalPoints += note * subject.coefficient;
-          studentTotalCoeff += subject.coefficient;
-          hasNotes = true;
-        }
-      });
-
-      if (hasNotes && studentTotalCoeff > 0) {
-        const studentAverage = studentTotalPoints / studentTotalCoeff;
-        averages.push(studentAverage);
-        totalAverage += studentAverage;
-        studentsWithNotes++;
-      }
-    });
-
-    if (studentsWithNotes === 0) {
+    // Calcul des statistiques basées sur les moyennes avec coefficients
+    const studentsWithNotes = filteredStudents.filter(student => student.averageScore > 0);
+    
+    if (studentsWithNotes.length === 0) {
       return {
         totalStudents: filteredStudents.length,
         classAverage: 0,
@@ -220,19 +258,21 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
         satisfactory: 0,
         unsatisfactory: 0,
         successRate: 0,
-        mobileCorrections: yearResults.length
+        mobileCorrections: yearResults.length,
+        studentsWithNotes: 0
       };
     }
 
-    const classAverage = totalAverage / studentsWithNotes;
+    const totalAverage = studentsWithNotes.reduce((sum, student) => sum + student.averageScore, 0);
+    const classAverage = totalAverage / studentsWithNotes.length;
     
-    // Répartition par niveau
-    const excellent = averages.filter(avg => avg >= 16).length;
-    const good = averages.filter(avg => avg >= 14 && avg < 16).length;
-    const satisfactory = averages.filter(avg => avg >= 10 && avg < 14).length;
-    const unsatisfactory = averages.filter(avg => avg < 10).length;
+    // Répartition par niveau basée sur la moyenne générale avec coefficients
+    const excellent = studentsWithNotes.filter(student => student.averageScore >= 16).length;
+    const good = studentsWithNotes.filter(student => student.averageScore >= 14 && student.averageScore < 16).length;
+    const satisfactory = studentsWithNotes.filter(student => student.averageScore >= 10 && student.averageScore < 14).length;
+    const unsatisfactory = studentsWithNotes.filter(student => student.averageScore < 10).length;
 
-    const successRate = ((studentsWithNotes - unsatisfactory) / studentsWithNotes * 100);
+    const successRate = ((studentsWithNotes.length - unsatisfactory) / studentsWithNotes.length * 100);
 
     const mobileCorrectionsCount = yearResults.filter(result =>
       filteredStudents.some(student => student.matricule === result.student_matricule)
@@ -247,7 +287,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
       unsatisfactory,
       successRate: successRate.toFixed(1),
       mobileCorrections: mobileCorrectionsCount,
-      studentsWithNotes
+      studentsWithNotes: studentsWithNotes.length
     };
   };
 
@@ -278,6 +318,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     }).reverse();
   };
 
+  // FONCTION CORRIGÉE: Statistiques par matière
   const getSubjectStats = (subjectCode) => {
     const yearData = getYearData();
     const yearStudents = yearData.students;
@@ -290,7 +331,9 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     const subject = subjects.find(s => s.code === subjectCode);
     if (!subject) return null;
 
+    const coefficient = subject.coefficient || 1;
     const finalNotes = [];
+    
     filteredStudents.forEach(student => {
       const studentMobileResults = yearResults.filter(
         result => result.student_matricule === student.matricule && result.subject_code === subjectCode
@@ -301,9 +344,15 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
         const latestResult = studentMobileResults.sort((a, b) => 
           new Date(b.created_at) - new Date(a.created_at)
         )[0];
-        finalNotes.push(latestResult.score);
+        finalNotes.push({
+          note: latestResult.score,
+          coefficient: coefficient
+        });
       } else if ((student.notes || {})[subjectCode] !== undefined) {
-        finalNotes.push((student.notes || {})[subjectCode]);
+        finalNotes.push({
+          note: (student.notes || {})[subjectCode],
+          coefficient: coefficient
+        });
       }
     });
 
@@ -314,13 +363,18 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
         averageOver20: 0,
         participationRate: 0,
         notesCount: 0,
-        maxPoints: 20 * (subject.coefficient || 1)
+        maxPoints: 20 * coefficient,
+        coefficient: coefficient
       };
     }
 
-    const maxPoints = 20 * (subject.coefficient || 1);
-    const average = finalNotes.reduce((sum, note) => sum + note, 0) / finalNotes.length;
-    const averageOver20 = (average / maxPoints) * 20;
+    // Calcul avec coefficient comme dans le premier code
+    const maxPoints = 20 * coefficient;
+    const totalWeighted = finalNotes.reduce((sum, item) => sum + (item.note * item.coefficient), 0);
+    const totalCoefficients = finalNotes.reduce((sum, item) => sum + item.coefficient, 0);
+    
+    const average = totalCoefficients > 0 ? totalWeighted / totalCoefficients : 0;
+    const averageOver20 = average; // Déjà sur 20
     const participationRate = (finalNotes.length / filteredStudents.length * 100);
 
     return {
@@ -329,8 +383,9 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
       averageOver20: averageOver20.toFixed(2),
       participationRate: participationRate.toFixed(1),
       notesCount: finalNotes.length,
-      finalNotes,
-      maxPoints
+      finalNotes: finalNotes.map(item => item.note),
+      maxPoints,
+      coefficient
     };
   };
 
@@ -349,6 +404,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     }).filter(item => item.students > 0);
   };
 
+  // FONCTION CORRIGÉE: Statistiques par classe
   const getAllClassesStats = () => {
     const yearData = getYearData();
     const yearStudents = yearData.students;
@@ -359,56 +415,40 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     return classes.map(classe => {
       const classStudents = yearStudents.filter(s => s.classe === classe);
       
-      let totalAverage = 0;
-      let studentsWithNotes = 0;
-      const averages = [];
+      // Calculer les moyennes avec coefficients pour cette classe
+      const studentsWithAverages = calculateStudentAverages(classStudents, yearResults);
+      const studentsWithNotes = Object.values(studentsWithAverages).filter(student => student.averageScore > 0);
 
-      classStudents.forEach(student => {
-        const traditionalNotes = student.notes || {};
-        const studentMobileResults = yearResults.filter(
-          result => result.student_matricule === student.matricule
-        );
-        
-        const allNotes = { ...traditionalNotes };
-        studentMobileResults.forEach(result => {
-          allNotes[result.subject_code] = result.score;
-        });
-
-        let studentTotalPoints = 0;
-        let studentTotalCoeff = 0;
-        let hasNotes = false;
-
-        subjects.forEach(subject => {
-          const note = allNotes[subject.code];
-          if (note !== undefined && note !== null) {
-            studentTotalPoints += note * subject.coefficient;
-            studentTotalCoeff += subject.coefficient;
-            hasNotes = true;
+      if (studentsWithNotes.length === 0) {
+        return {
+          classe,
+          studentCount: classStudents.length,
+          studentsWithNotes: 0,
+          average: 0,
+          successRate: 0,
+          distribution: {
+            excellent: 0,
+            good: 0,
+            satisfactory: 0,
+            unsatisfactory: 0
           }
-        });
+        };
+      }
 
-        if (hasNotes && studentTotalCoeff > 0) {
-          const studentAverage = studentTotalPoints / studentTotalCoeff;
-          averages.push(studentAverage);
-          totalAverage += studentAverage;
-          studentsWithNotes++;
-        }
-      });
-
-      const classAverage = studentsWithNotes > 0 ? totalAverage / studentsWithNotes : 0;
-      const successRate = studentsWithNotes > 0 ? (averages.filter(avg => avg >= 10).length / studentsWithNotes * 100) : 0;
+      const classAverage = studentsWithNotes.reduce((sum, student) => sum + student.averageScore, 0) / studentsWithNotes.length;
+      const successRate = (studentsWithNotes.filter(student => student.averageScore >= 10).length / studentsWithNotes.length * 100);
 
       const distribution = {
-        excellent: averages.filter(avg => avg >= 16).length,
-        good: averages.filter(avg => avg >= 14 && avg < 16).length,
-        satisfactory: averages.filter(avg => avg >= 10 && avg < 14).length,
-        unsatisfactory: averages.filter(avg => avg < 10).length
+        excellent: studentsWithNotes.filter(student => student.averageScore >= 16).length,
+        good: studentsWithNotes.filter(student => student.averageScore >= 14 && student.averageScore < 16).length,
+        satisfactory: studentsWithNotes.filter(student => student.averageScore >= 10 && student.averageScore < 14).length,
+        unsatisfactory: studentsWithNotes.filter(student => student.averageScore < 10).length
       };
 
       return {
         classe,
         studentCount: classStudents.length,
-        studentsWithNotes,
+        studentsWithNotes: studentsWithNotes.length,
         average: classAverage.toFixed(2),
         successRate: successRate.toFixed(1),
         distribution
@@ -423,15 +463,12 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     if (!stats || !stats.finalNotes) return [];
 
     const finalNotes = stats.finalNotes;
-    const maxPoints = stats.maxPoints;
-    
-    const notesOver20 = finalNotes.map(note => (note / maxPoints) * 20);
     
     return [
-      { name: 'Excellent (≥16)', value: notesOver20.filter(n => n >= 16).length, color: '#10b981' },
-      { name: 'Très Bien (14-16)', value: notesOver20.filter(n => n >= 14 && n < 16).length, color: '#3b82f6' },
-      { name: 'Satisfaisant (10-14)', value: notesOver20.filter(n => n >= 10 && n < 14).length, color: '#f59e0b' },
-      { name: 'Insuffisant (<10)', value: notesOver20.filter(n => n < 10).length, color: '#ef4444' }
+      { name: 'Excellent (≥16)', value: finalNotes.filter(n => n >= 16).length, color: '#10b981' },
+      { name: 'Très Bien (14-16)', value: finalNotes.filter(n => n >= 14 && n < 16).length, color: '#3b82f6' },
+      { name: 'Satisfaisant (10-14)', value: finalNotes.filter(n => n >= 10 && n < 14).length, color: '#f59e0b' },
+      { name: 'Insuffisant (<10)', value: finalNotes.filter(n => n < 10).length, color: '#ef4444' }
     ];
   };
 
@@ -443,6 +480,14 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
       { name: 'Satisfaisant', value: stats.satisfactory, color: '#f59e0b' },
       { name: 'Insuffisant', value: stats.unsatisfactory, color: '#ef4444' }
     ];
+  };
+
+  // Fonction pour formater les notes avec coefficients (identique au premier code)
+  const formatScoreAvecCoefficient = (score, coefficient = 1) => {
+    if (isNaN(score)) return '—';
+    const scoreAvecCoefficient = score * coefficient;
+    const maxAvecCoefficient = 20 * coefficient;
+    return `${scoreAvecCoefficient.toFixed(1)}/${maxAvecCoefficient.toFixed(0)}`;
   };
 
   // Fonction d'export PDF améliorée avec couleur simple et sans icônes/emojis
@@ -671,6 +716,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
               <th>Matière</th>
               <th>Étudiants Notés</th>
               <th>Moyenne /20</th>
+              <th>Moyenne avec Coeff</th>
               <th>Participation</th>
               <th>Coefficient</th>
               <th>Performance</th>
@@ -698,6 +744,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
                   <td><strong>${item.subject}</strong></td>
                   <td>${item.students}</td>
                   <td><strong>${item.averageOver20.toFixed(2)}</strong></td>
+                  <td>${formatScoreAvecCoefficient(parseFloat(item.averageOver20), item.coefficient)}</td>
                   <td>${item.participation}%</td>
                   <td>${item.coefficient}</td>
                   <td><span class="performance-indicator ${performanceClass}">${performance}</span></td>
@@ -1030,7 +1077,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
                         <tr key={index}>
                           <td className="subject-cell">{item.subject}</td>
                           <td>{item.students}</td>
-                          <td>{item.average.toFixed(2)}/{item.maxPoints.toFixed(0)}</td>
+                          <td>{formatScoreAvecCoefficient(parseFloat(item.averageOver20), item.coefficient)}</td>
                           <td>{item.averageOver20.toFixed(2)}/20</td>
                           <td>{item.participation}%</td>
                           <td>{item.coefficient}</td>
@@ -1147,7 +1194,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
                       return stats && (
                         <>
                           <div className="subject-stat">
-                            <div className="subject-value">{stats.average}/{stats.maxPoints.toFixed(0)}</div>
+                            <div className="subject-value">{formatScoreAvecCoefficient(parseFloat(stats.averageOver20), stats.coefficient)}</div>
                             <div className="subject-label">Moyenne (avec coeff)</div>
                           </div>
                           <div className="subject-stat">
