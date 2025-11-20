@@ -151,7 +151,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     return { students: [], mobileResults: [] };
   };
 
-  // CALCUL CORRIGÉ DE LA MOYENNE GÉNÉRALE ET TAUX DE RÉUSSITE
+  // CORRECTION : Calcul simplifié et plus précis
   const calculateGlobalStats = () => {
     const yearData = getYearData();
     const yearStudents = yearData.students;
@@ -174,70 +174,81 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
       };
     }
 
-    // Calcul des moyennes pour chaque étudiant
-    const studentAverages = filteredStudents.map(student => {
+    let totalAverage = 0;
+    let studentsWithNotes = 0;
+    const averages = [];
+
+    filteredStudents.forEach(student => {
       const traditionalNotes = student.notes || {};
       const studentMobileResults = yearResults.filter(
         result => result.student_matricule === student.matricule
       );
       
-      // Fusion des notes traditionnelles et mobiles (les mobiles écrasent les traditionnelles si même matière)
-      const mobileNotes = {};
+      // Fusion des notes
+      const allNotes = { ...traditionalNotes };
       studentMobileResults.forEach(result => {
-        if (!mobileNotes[result.subject_code] || 
-            new Date(result.created_at) > new Date(mobileNotes[result.subject_code].created_at)) {
-          mobileNotes[result.subject_code] = result;
+        allNotes[result.subject_code] = result.score;
+      });
+
+      // Calcul moyenne étudiant
+      let studentTotalPoints = 0;
+      let studentTotalCoeff = 0;
+      let hasNotes = false;
+
+      subjects.forEach(subject => {
+        const note = allNotes[subject.code];
+        if (note !== undefined && note !== null) {
+          studentTotalPoints += note * subject.coefficient;
+          studentTotalCoeff += subject.coefficient;
+          hasNotes = true;
         }
       });
 
-      const allNotes = { ...traditionalNotes };
-      Object.keys(mobileNotes).forEach(subjectCode => {
-        allNotes[subjectCode] = mobileNotes[subjectCode].score;
-      });
-
-      // Calcul de la moyenne pondérée par coefficients
-      const subjects_with_coeff = subjects.map(subject => ({
-        ...subject,
-        note: allNotes[subject.code] || 0
-      }));
-      
-      const totalPoints = subjects_with_coeff.reduce((sum, subject) => 
-        sum + (subject.note * subject.coefficient), 0);
-      const totalCoeff = subjects_with_coeff.reduce((sum, subject) => 
-        sum + subject.coefficient, 0);
-      
-      // Moyenne sur 20 (divisée par le coefficient total)
-      return totalCoeff > 0 ? totalPoints / totalCoeff : 0;
+      if (hasNotes && studentTotalCoeff > 0) {
+        const studentAverage = studentTotalPoints / studentTotalCoeff;
+        averages.push(studentAverage);
+        totalAverage += studentAverage;
+        studentsWithNotes++;
+      }
     });
 
-    const totalStudents = filteredStudents.length;
-    
-    // Moyenne générale de la classe (moyenne des moyennes des étudiants)
-    const classAverage = studentAverages.reduce((sum, avg) => sum + avg, 0) / totalStudents;
+    if (studentsWithNotes === 0) {
+      return {
+        totalStudents: filteredStudents.length,
+        classAverage: 0,
+        excellent: 0,
+        good: 0,
+        satisfactory: 0,
+        unsatisfactory: 0,
+        successRate: 0,
+        mobileCorrections: yearResults.length
+      };
+    }
+
+    const classAverage = totalAverage / studentsWithNotes;
     
     // Répartition par niveau
-    const excellent = studentAverages.filter(avg => avg >= 16).length;
-    const good = studentAverages.filter(avg => avg >= 14 && avg < 16).length;
-    const satisfactory = studentAverages.filter(avg => avg >= 10 && avg < 14).length;
-    const unsatisfactory = studentAverages.filter(avg => avg < 10).length;
+    const excellent = averages.filter(avg => avg >= 16).length;
+    const good = averages.filter(avg => avg >= 14 && avg < 16).length;
+    const satisfactory = averages.filter(avg => avg >= 10 && avg < 14).length;
+    const unsatisfactory = averages.filter(avg => avg < 10).length;
 
-    // Taux de réussite : pourcentage d'étudiants avec moyenne >= 10/20
-    const successRate = ((totalStudents - unsatisfactory) / totalStudents * 100);
+    const successRate = ((studentsWithNotes - unsatisfactory) / studentsWithNotes * 100);
 
-    // Nombre de corrections mobiles
     const mobileCorrectionsCount = yearResults.filter(result =>
       filteredStudents.some(student => student.matricule === result.student_matricule)
     ).length;
 
     return {
-      totalStudents,
+      totalStudents: filteredStudents.length,
       classAverage: classAverage.toFixed(2),
       excellent,
       good,
       satisfactory,
       unsatisfactory,
       successRate: successRate.toFixed(1),
-      mobileCorrections: mobileCorrectionsCount
+      mobileCorrections: mobileCorrectionsCount,
+      studentsWithNotes
     };
   };
 
@@ -268,7 +279,6 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     }).reverse();
   };
 
-  // CALCUL CORRIGÉ DES STATISTIQUES PAR MATIÈRE
   const getSubjectStats = (subjectCode) => {
     const yearData = getYearData();
     const yearStudents = yearData.students;
@@ -287,7 +297,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
         result => result.student_matricule === student.matricule && result.subject_code === subjectCode
       );
       
-      // Priorité aux notes mobiles (les plus récentes)
+      // Priorité aux notes mobiles
       if (studentMobileResults.length > 0) {
         const latestResult = studentMobileResults.sort((a, b) => 
           new Date(b.created_at) - new Date(a.created_at)
@@ -310,14 +320,8 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     }
 
     const maxPoints = 20 * (subject.coefficient || 1);
-    
-    // Moyenne avec coefficient
     const average = finalNotes.reduce((sum, note) => sum + note, 0) / finalNotes.length;
-    
-    // Conversion en note sur 20
     const averageOver20 = (average / maxPoints) * 20;
-    
-    // Taux de participation
     const participationRate = (finalNotes.length / filteredStudents.length * 100);
 
     return {
@@ -343,7 +347,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
         coefficient: subject.coefficient,
         maxPoints: stats ? stats.maxPoints : (20 * subject.coefficient)
       };
-    }).filter(item => item.students > 0).slice(0, 10);
+    }).filter(item => item.students > 0);
   };
 
   const getAllClassesStats = () => {
@@ -355,40 +359,45 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     
     return classes.map(classe => {
       const classStudents = yearStudents.filter(s => s.classe === classe);
-      const averages = classStudents.map(student => {
+      
+      let totalAverage = 0;
+      let studentsWithNotes = 0;
+      const averages = [];
+
+      classStudents.forEach(student => {
         const traditionalNotes = student.notes || {};
         const studentMobileResults = yearResults.filter(
           result => result.student_matricule === student.matricule
         );
         
-        const mobileNotes = {};
+        const allNotes = { ...traditionalNotes };
         studentMobileResults.forEach(result => {
-          if (!mobileNotes[result.subject_code] || 
-              new Date(result.created_at) > new Date(mobileNotes[result.subject_code].created_at)) {
-            mobileNotes[result.subject_code] = result;
+          allNotes[result.subject_code] = result.score;
+        });
+
+        let studentTotalPoints = 0;
+        let studentTotalCoeff = 0;
+        let hasNotes = false;
+
+        subjects.forEach(subject => {
+          const note = allNotes[subject.code];
+          if (note !== undefined && note !== null) {
+            studentTotalPoints += note * subject.coefficient;
+            studentTotalCoeff += subject.coefficient;
+            hasNotes = true;
           }
         });
 
-        const allNotes = { ...traditionalNotes };
-        Object.keys(mobileNotes).forEach(subjectCode => {
-          allNotes[subjectCode] = mobileNotes[subjectCode].score;
-        });
-
-        const subjects_with_coeff = subjects.map(subject => ({
-          ...subject,
-          note: allNotes[subject.code] || 0
-        }));
-        
-        const totalPoints = subjects_with_coeff.reduce((sum, subject) => 
-          sum + (subject.note * subject.coefficient), 0);
-        const totalCoeff = subjects_with_coeff.reduce((sum, subject) => 
-          sum + subject.coefficient, 0);
-        
-        return totalCoeff > 0 ? totalPoints / totalCoeff : 0;
+        if (hasNotes && studentTotalCoeff > 0) {
+          const studentAverage = studentTotalPoints / studentTotalCoeff;
+          averages.push(studentAverage);
+          totalAverage += studentAverage;
+          studentsWithNotes++;
+        }
       });
 
-      const classAverage = averages.length > 0 ? averages.reduce((sum, avg) => sum + avg, 0) / averages.length : 0;
-      const successRate = averages.length > 0 ? (averages.filter(avg => avg >= 10).length / averages.length * 100) : 0;
+      const classAverage = studentsWithNotes > 0 ? totalAverage / studentsWithNotes : 0;
+      const successRate = studentsWithNotes > 0 ? (averages.filter(avg => avg >= 10).length / studentsWithNotes * 100) : 0;
 
       const distribution = {
         excellent: averages.filter(avg => avg >= 16).length,
@@ -400,6 +409,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
       return {
         classe,
         studentCount: classStudents.length,
+        studentsWithNotes,
         average: classAverage.toFixed(2),
         successRate: successRate.toFixed(1),
         distribution
@@ -436,138 +446,163 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     ];
   };
 
+  // CORRECTION : Fonction d'export CSV qui fonctionne
   const exportToCSV = () => {
-    const yearData = getYearData();
-    const stats = calculateGlobalStats();
-    
-    let csvContent = "Données Statistiques Scolaires - Année " + selectedYear + "\n";
-    csvContent += "Exporté le: " + new Date().toLocaleDateString('fr-FR') + "\n\n";
-    
-    csvContent += "STATISTIQUES GLOBALES\n";
-    csvContent += "Nombre d'étudiants," + stats.totalStudents + "\n";
-    csvContent += "Moyenne générale," + stats.classAverage + "/20\n";
-    csvContent += "Taux de réussite," + stats.successRate + "%\n";
-    csvContent += "Corrections mobiles," + stats.mobileCorrections + "\n";
-    csvContent += "Excellent (≥16)," + stats.excellent + "\n";
-    csvContent += "Très Bien (14-16)," + stats.good + "\n";
-    csvContent += "Satisfaisant (10-14)," + stats.satisfactory + "\n";
-    csvContent += "Insuffisant (<10)," + stats.unsatisfactory + "\n\n";
-    
-    csvContent += "PERFORMANCE PAR MATIERE\n";
-    csvContent += "Matière,Étudiants notés,Moyenne (avec coeff),Moyenne /20,Taux participation,Coefficient\n";
-    
-    subjectsPerformance.forEach(item => {
-      csvContent += `"${item.subject}",${item.students},${item.average.toFixed(2)}/${item.maxPoints.toFixed(0)},${item.averageOver20.toFixed(2)}/20,${item.participation}%,${item.coefficient}\n`;
-    });
-    
-    csvContent += "\n";
-    
-    csvContent += "STATISTIQUES PAR CLASSE\n";
-    csvContent += "Classe,Nombre d'étudiants,Moyenne,Taux de réussite,Excellent,Très Bien,Satisfaisant,Insuffisant\n";
-    
-    allClassesStats.forEach(classe => {
-      csvContent += `"${classe.classe}",${classe.studentCount},${classe.average}/20,${classe.successRate}%,${classe.distribution.excellent},${classe.distribution.good},${classe.distribution.satisfactory},${classe.distribution.unsatisfactory}\n`;
-    });
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `statistiques_scolaires_${selectedYear}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const stats = calculateGlobalStats();
+      const subjectsPerformance = getSubjectsPerformance();
+      const allClassesStats = getAllClassesStats();
+      
+      let csvContent = "Données Statistiques Scolaires - Année " + selectedYear + "\n";
+      csvContent += "Exporté le: " + new Date().toLocaleDateString('fr-FR') + "\n\n";
+      
+      csvContent += "STATISTIQUES GLOBALES\n";
+      csvContent += "Nombre d'étudiants," + stats.totalStudents + "\n";
+      csvContent += "Étudiants notés," + stats.studentsWithNotes + "\n";
+      csvContent += "Moyenne générale," + stats.classAverage + "/20\n";
+      csvContent += "Taux de réussite," + stats.successRate + "%\n";
+      csvContent += "Corrections mobiles," + stats.mobileCorrections + "\n";
+      csvContent += "Excellent (≥16)," + stats.excellent + "\n";
+      csvContent += "Très Bien (14-16)," + stats.good + "\n";
+      csvContent += "Satisfaisant (10-14)," + stats.satisfactory + "\n";
+      csvContent += "Insuffisant (<10)," + stats.unsatisfactory + "\n\n";
+      
+      csvContent += "PERFORMANCE PAR MATIERE\n";
+      csvContent += "Matière,Étudiants notés,Moyenne (avec coeff),Moyenne /20,Taux participation,Coefficient\n";
+      
+      subjectsPerformance.forEach(item => {
+        csvContent += `"${item.subject}",${item.students},${item.average.toFixed(2)}/${item.maxPoints.toFixed(0)},${item.averageOver20.toFixed(2)}/20,${item.participation}%,${item.coefficient}\n`;
+      });
+      
+      csvContent += "\n";
+      
+      csvContent += "STATISTIQUES PAR CLASSE\n";
+      csvContent += "Classe,Nombre d'étudiants,Étudiants notés,Moyenne,Taux de réussite,Excellent,Très Bien,Satisfaisant,Insuffisant\n";
+      
+      allClassesStats.forEach(classe => {
+        csvContent += `"${classe.classe}",${classe.studentCount},${classe.studentsWithNotes},${classe.average}/20,${classe.successRate}%,${classe.distribution.excellent},${classe.distribution.good},${classe.distribution.satisfactory},${classe.distribution.unsatisfactory}\n`;
+      });
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `statistiques_scolaires_${selectedYear.replace('/', '-')}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erreur export CSV:', error);
+      alert('Erreur lors de l\'export CSV: ' + error.message);
+    }
   };
 
+  // CORRECTION : Fonction d'export PDF qui fonctionne
   const exportToPDF = () => {
-    const printWindow = window.open('', '_blank');
-    const stats = calculateGlobalStats();
-    
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Statistiques Scolaires ${selectedYear}</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 20px; }
-          h1 { color: #333; text-align: center; }
-          h2 { color: #555; border-bottom: 2px solid #eee; padding-bottom: 5px; }
-          .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 20px 0; }
-          .stat-card { background: #f9f9f9; padding: 15px; border-radius: 5px; border-left: 4px solid #0078d4; }
-          .stat-value { font-size: 24px; font-weight: bold; color: #0078d4; }
-          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-          th { background-color: #f2f2f2; }
-          .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
-        </style>
-      </head>
-      <body>
-        <h1>📊 Tableau de Bord des Performances Académiques</h1>
-        <h2>Année Scolaire: ${selectedYear}</h2>
-        <p>Exporté le: ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
-        
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-value">${stats.totalStudents}</div>
-            <div>Étudiants Total</div>
+    try {
+      const stats = calculateGlobalStats();
+      const subjectsPerformance = getSubjectsPerformance();
+      
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        alert('Veuillez autoriser les pop-ups pour l\'export PDF');
+        return;
+      }
+      
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Statistiques Scolaires ${selectedYear}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            h1 { color: #333; text-align: center; }
+            h2 { color: #555; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+            .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 20px 0; }
+            .stat-card { background: #f9f9f9; padding: 15px; border-radius: 5px; border-left: 4px solid #0078d4; }
+            .stat-value { font-size: 24px; font-weight: bold; color: #0078d4; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+            @media print {
+              body { margin: 10px; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>📊 Tableau de Bord des Performances Académiques</h1>
+          <h2>Année Scolaire: ${selectedYear}</h2>
+          <p>Exporté le: ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
+          
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value">${stats.totalStudents}</div>
+              <div>Étudiants Total</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${stats.classAverage}/20</div>
+              <div>Moyenne Générale</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${stats.successRate}%</div>
+              <div>Taux de Réussite</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${stats.mobileCorrections}</div>
+              <div>Corrections Mobile</div>
+            </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-value">${stats.classAverage}/20</div>
-            <div>Moyenne Générale</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${stats.successRate}%</div>
-            <div>Taux de Réussite</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">${stats.mobileCorrections}</div>
-            <div>Corrections Mobile</div>
-          </div>
-        </div>
-        
-        <h2>Répartition des Niveaux</h2>
-        <table>
-          <tr><th>Niveau</th><th>Nombre d'étudiants</th></tr>
-          <tr><td>Excellent (≥16)</td><td>${stats.excellent}</td></tr>
-          <tr><td>Très Bien (14-16)</td><td>${stats.good}</td></tr>
-          <tr><td>Satisfaisant (10-14)</td><td>${stats.satisfactory}</td></tr>
-          <tr><td>Insuffisant (<10)</td><td>${stats.unsatisfactory}</td></tr>
-        </table>
-        
-        <h2>Performance par Matière</h2>
-        <table>
-          <tr>
-            <th>Matière</th>
-            <th>Étudiants Notés</th>
-            <th>Moyenne /20</th>
-            <th>Participation</th>
-            <th>Coefficient</th>
-          </tr>
-          ${subjectsPerformance.map(item => `
+          
+          <h2>Répartition des Niveaux</h2>
+          <table>
+            <tr><th>Niveau</th><th>Nombre d'étudiants</th></tr>
+            <tr><td>Excellent (≥16)</td><td>${stats.excellent}</td></tr>
+            <tr><td>Très Bien (14-16)</td><td>${stats.good}</td></tr>
+            <tr><td>Satisfaisant (10-14)</td><td>${stats.satisfactory}</td></tr>
+            <tr><td>Insuffisant (<10)</td><td>${stats.unsatisfactory}</td></tr>
+          </table>
+          
+          <h2>Performance par Matière</h2>
+          <table>
             <tr>
-              <td>${item.subject}</td>
-              <td>${item.students}</td>
-              <td>${item.averageOver20.toFixed(2)}</td>
-              <td>${item.participation}%</td>
-              <td>${item.coefficient}</td>
+              <th>Matière</th>
+              <th>Étudiants Notés</th>
+              <th>Moyenne /20</th>
+              <th>Participation</th>
+              <th>Coefficient</th>
             </tr>
-          `).join('')}
-        </table>
-        
-        <div class="footer">
-          <p>Système de gestion avec historique multi-années • Données sauvegardées localement</p>
-        </div>
-      </body>
-      </html>
-    `;
-    
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    
-    setTimeout(() => {
-      printWindow.print();
-    }, 500);
+            ${subjectsPerformance.map(item => `
+              <tr>
+                <td>${item.subject}</td>
+                <td>${item.students}</td>
+                <td>${item.averageOver20.toFixed(2)}</td>
+                <td>${item.participation}%</td>
+                <td>${item.coefficient}</td>
+              </tr>
+            `).join('')}
+          </table>
+          
+          <div class="footer">
+            <p>Système de gestion avec historique multi-années • Données sauvegardées localement</p>
+          </div>
+          
+          <button class="no-print" onclick="window.print()" style="position: fixed; top: 20px; right: 20px; padding: 10px 20px; background: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Imprimer
+          </button>
+        </body>
+        </html>
+      `;
+      
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      
+    } catch (error) {
+      console.error('Erreur export PDF:', error);
+      alert('Erreur lors de l\'export PDF: ' + error.message);
+    }
   };
 
   const globalStats = calculateGlobalStats();
@@ -651,8 +686,8 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
                   Exporter
                 </button>
                 <div className="export-options">
-                  <button onClick={exportToCSV}>Exporter en CSV</button>
-                  <button onClick={exportToPDF}>Exporter en PDF</button>
+                  <button onClick={exportToCSV}>📊 Exporter en CSV</button>
+                  <button onClick={exportToPDF}>📄 Exporter en PDF</button>
                 </div>
               </div>
             </div>
@@ -691,6 +726,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
         </div>
       </div>
 
+      {/* Le reste du contenu reste identique mais avec les données corrigées */}
       <div className="content-area">
         {viewMode === 'overview' && (
           <div className="overview-grid">
@@ -736,6 +772,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
               </div>
             </div>
 
+            {/* Les autres sections restent identiques */}
             <div className="chart-section">
               <div className="chart-card">
                 <div className="chart-header">
@@ -821,6 +858,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
           </div>
         )}
 
+        {/* Les autres vues (history, subjects, classes) restent identiques */}
         {viewMode === 'history' && (
           <div className="history-view">
             <div className="chart-card full-width">
@@ -1103,6 +1141,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
         )}
       </div>
 
+      {/* Le CSS reste identique */}
       <style jsx>{`
         .dashboard-wrapper {
           background: #f8f9fa;
