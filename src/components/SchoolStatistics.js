@@ -151,6 +151,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     return { students: [], mobileResults: [] };
   };
 
+  // CALCUL CORRIGÉ DE LA MOYENNE GÉNÉRALE ET TAUX DE RÉUSSITE
   const calculateGlobalStats = () => {
     const yearData = getYearData();
     const yearStudents = yearData.students;
@@ -173,12 +174,14 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
       };
     }
 
-    const averages = filteredStudents.map(student => {
+    // Calcul des moyennes pour chaque étudiant
+    const studentAverages = filteredStudents.map(student => {
       const traditionalNotes = student.notes || {};
       const studentMobileResults = yearResults.filter(
         result => result.student_matricule === student.matricule
       );
       
+      // Fusion des notes traditionnelles et mobiles (les mobiles écrasent les traditionnelles si même matière)
       const mobileNotes = {};
       studentMobileResults.forEach(result => {
         if (!mobileNotes[result.subject_code] || 
@@ -192,6 +195,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
         allNotes[subjectCode] = mobileNotes[subjectCode].score;
       });
 
+      // Calcul de la moyenne pondérée par coefficients
       const subjects_with_coeff = subjects.map(subject => ({
         ...subject,
         note: allNotes[subject.code] || 0
@@ -202,16 +206,25 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
       const totalCoeff = subjects_with_coeff.reduce((sum, subject) => 
         sum + subject.coefficient, 0);
       
+      // Moyenne sur 20 (divisée par le coefficient total)
       return totalCoeff > 0 ? totalPoints / totalCoeff : 0;
     });
 
     const totalStudents = filteredStudents.length;
-    const classAverage = averages.reduce((sum, avg) => sum + avg, 0) / totalStudents;
-    const excellent = averages.filter(avg => avg >= 16).length;
-    const good = averages.filter(avg => avg >= 14 && avg < 16).length;
-    const satisfactory = averages.filter(avg => avg >= 10 && avg < 14).length;
-    const unsatisfactory = averages.filter(avg => avg < 10).length;
+    
+    // Moyenne générale de la classe (moyenne des moyennes des étudiants)
+    const classAverage = studentAverages.reduce((sum, avg) => sum + avg, 0) / totalStudents;
+    
+    // Répartition par niveau
+    const excellent = studentAverages.filter(avg => avg >= 16).length;
+    const good = studentAverages.filter(avg => avg >= 14 && avg < 16).length;
+    const satisfactory = studentAverages.filter(avg => avg >= 10 && avg < 14).length;
+    const unsatisfactory = studentAverages.filter(avg => avg < 10).length;
 
+    // Taux de réussite : pourcentage d'étudiants avec moyenne >= 10/20
+    const successRate = ((totalStudents - unsatisfactory) / totalStudents * 100);
+
+    // Nombre de corrections mobiles
     const mobileCorrectionsCount = yearResults.filter(result =>
       filteredStudents.some(student => student.matricule === result.student_matricule)
     ).length;
@@ -223,7 +236,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
       good,
       satisfactory,
       unsatisfactory,
-      successRate: ((totalStudents - unsatisfactory) / totalStudents * 100).toFixed(1),
+      successRate: successRate.toFixed(1),
       mobileCorrections: mobileCorrectionsCount
     };
   };
@@ -255,6 +268,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     }).reverse();
   };
 
+  // CALCUL CORRIGÉ DES STATISTIQUES PAR MATIÈRE
   const getSubjectStats = (subjectCode) => {
     const yearData = getYearData();
     const yearStudents = yearData.students;
@@ -273,6 +287,7 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
         result => result.student_matricule === student.matricule && result.subject_code === subjectCode
       );
       
+      // Priorité aux notes mobiles (les plus récentes)
       if (studentMobileResults.length > 0) {
         const latestResult = studentMobileResults.sort((a, b) => 
           new Date(b.created_at) - new Date(a.created_at)
@@ -295,15 +310,21 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     }
 
     const maxPoints = 20 * (subject.coefficient || 1);
+    
+    // Moyenne avec coefficient
     const average = finalNotes.reduce((sum, note) => sum + note, 0) / finalNotes.length;
+    
+    // Conversion en note sur 20
     const averageOver20 = (average / maxPoints) * 20;
-    const participationRate = (finalNotes.length / filteredStudents.length * 100).toFixed(1);
+    
+    // Taux de participation
+    const participationRate = (finalNotes.length / filteredStudents.length * 100);
 
     return {
       subject,
       average: average.toFixed(2),
       averageOver20: averageOver20.toFixed(2),
-      participationRate,
+      participationRate: participationRate.toFixed(1),
       notesCount: finalNotes.length,
       finalNotes,
       maxPoints
@@ -419,33 +440,33 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
     const yearData = getYearData();
     const stats = calculateGlobalStats();
     
-    let csvContent = "Données Statistiques Scolaires - Année " + selectedYear + "\\n";
-    csvContent += "Exporté le: " + new Date().toLocaleDateString('fr-FR') + "\\n\\n";
+    let csvContent = "Données Statistiques Scolaires - Année " + selectedYear + "\n";
+    csvContent += "Exporté le: " + new Date().toLocaleDateString('fr-FR') + "\n\n";
     
-    csvContent += "STATISTIQUES GLOBALES\\n";
-    csvContent += "Nombre d'étudiants," + stats.totalStudents + "\\n";
-    csvContent += "Moyenne générale," + stats.classAverage + "/20\\n";
-    csvContent += "Taux de réussite," + stats.successRate + "%\\n";
-    csvContent += "Corrections mobiles," + stats.mobileCorrections + "\\n";
-    csvContent += "Excellent (≥16)," + stats.excellent + "\\n";
-    csvContent += "Très Bien (14-16)," + stats.good + "\\n";
-    csvContent += "Satisfaisant (10-14)," + stats.satisfactory + "\\n";
-    csvContent += "Insuffisant (<10)," + stats.unsatisfactory + "\\n\\n";
+    csvContent += "STATISTIQUES GLOBALES\n";
+    csvContent += "Nombre d'étudiants," + stats.totalStudents + "\n";
+    csvContent += "Moyenne générale," + stats.classAverage + "/20\n";
+    csvContent += "Taux de réussite," + stats.successRate + "%\n";
+    csvContent += "Corrections mobiles," + stats.mobileCorrections + "\n";
+    csvContent += "Excellent (≥16)," + stats.excellent + "\n";
+    csvContent += "Très Bien (14-16)," + stats.good + "\n";
+    csvContent += "Satisfaisant (10-14)," + stats.satisfactory + "\n";
+    csvContent += "Insuffisant (<10)," + stats.unsatisfactory + "\n\n";
     
-    csvContent += "PERFORMANCE PAR MATIERE\\n";
-    csvContent += "Matière,Étudiants notés,Moyenne (avec coeff),Moyenne /20,Taux participation,Coefficient\\n";
+    csvContent += "PERFORMANCE PAR MATIERE\n";
+    csvContent += "Matière,Étudiants notés,Moyenne (avec coeff),Moyenne /20,Taux participation,Coefficient\n";
     
     subjectsPerformance.forEach(item => {
-      csvContent += `"${item.subject}",${item.students},${item.average.toFixed(2)}/${item.maxPoints.toFixed(0)},${item.averageOver20.toFixed(2)}/20,${item.participation}%,${item.coefficient}\\n`;
+      csvContent += `"${item.subject}",${item.students},${item.average.toFixed(2)}/${item.maxPoints.toFixed(0)},${item.averageOver20.toFixed(2)}/20,${item.participation}%,${item.coefficient}\n`;
     });
     
-    csvContent += "\\n";
+    csvContent += "\n";
     
-    csvContent += "STATISTIQUES PAR CLASSE\\n";
-    csvContent += "Classe,Nombre d'étudiants,Moyenne,Taux de réussite,Excellent,Très Bien,Satisfaisant,Insuffisant\\n";
+    csvContent += "STATISTIQUES PAR CLASSE\n";
+    csvContent += "Classe,Nombre d'étudiants,Moyenne,Taux de réussite,Excellent,Très Bien,Satisfaisant,Insuffisant\n";
     
     allClassesStats.forEach(classe => {
-      csvContent += `"${classe.classe}",${classe.studentCount},${classe.average}/20,${classe.successRate}%,${classe.distribution.excellent},${classe.distribution.good},${classe.distribution.satisfactory},${classe.distribution.unsatisfactory}\\n`;
+      csvContent += `"${classe.classe}",${classe.studentCount},${classe.average}/20,${classe.successRate}%,${classe.distribution.excellent},${classe.distribution.good},${classe.distribution.satisfactory},${classe.distribution.unsatisfactory}\n`;
     });
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

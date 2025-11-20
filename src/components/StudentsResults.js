@@ -292,7 +292,7 @@ const StudentResults = () => {
     return `${scoreAvecCoefficient.toFixed(1)}/${maxAvecCoefficient.toFixed(0)}`;
   };
 
-  // Export CSV
+  // Export CSV corrigé pour Excel
   const exportClassCSV = (classe) => {
     const allSubjectsSet = new Set();
     classe.students.forEach(student => {
@@ -302,26 +302,31 @@ const StudentResults = () => {
     });
     const allSubjects = Array.from(allSubjectsSet).sort();
 
-    let csv = 'Matricule,Nom et Prénom';
+    // En-tête CSV avec séparateur point-virgule pour Excel
+    let csv = 'Matricule;Nom et Prenom';
     allSubjects.forEach(subject => {
-      csv += `,${subject} (/20),${subject} (avec coef.)`;
+      csv += `;${subject} (/20);${subject} (avec coef.)`;
     });
-    csv += ',Moyenne Générale (/20),Moyenne Générale (avec coef.)\n';
+    csv += ';Moyenne Generale (/20);Moyenne Generale (avec coef.)\n';
 
+    // Données des étudiants
     classe.students.forEach(student => {
-      csv += `${student.matricule},"${student.nom} ${student.prenom}"`;
+      // Échapper les guillemets et utiliser le point comme séparateur décimal
+      csv += `${student.matricule};"${student.nom} ${student.prenom}"`;
       allSubjects.forEach(subjectName => {
         const subject = student.subjects[subjectName];
         if (subject) {
-          csv += `,${subject.lastScore.toFixed(1)}/20,${formatScoreAvecCoefficient(subject.lastScore, subject.coefficient)}`;
+          csv += `;${subject.lastScore.toFixed(1).replace('.', ',')}/20;${formatScoreAvecCoefficient(subject.lastScore, subject.coefficient).replace('.', ',')}`;
         } else {
-          csv += ',—,—';
+          csv += ';;';
         }
       });
-      csv += `,${student.averageScore.toFixed(2)}/20,${formatScoreAvecCoefficient(student.averageScore, student.totalCoefficients)}\n`;
+      csv += `;${student.averageScore.toFixed(2).replace('.', ',')}/20;${formatScoreAvecCoefficient(student.averageScore, student.totalCoefficients).replace('.', ',')}\n`;
     });
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    // Créer le fichier avec BOM pour Excel
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `Bulletin_${classe.name}_${new Date().toISOString().split('T')[0]}.csv`;
@@ -329,25 +334,29 @@ const StudentResults = () => {
   };
 
   const exportStudentCSV = (student, className) => {
-    let csv = 'Matière,Coefficient,Note/20,Note avec Coefficient\n';
+    // En-tête avec séparateur point-virgule
+    let csv = 'Matiere;Coefficient;Note/20;Note avec Coefficient\n';
     
     Object.values(student.subjects)
       .sort((a, b) => a.name.localeCompare(b.name))
       .forEach(subject => {
-        csv += `"${subject.name}",${subject.coefficient},${subject.lastScore.toFixed(1)}/20,${formatScoreAvecCoefficient(subject.lastScore, subject.coefficient)}\n`;
+        // Remplacer les points par des virgules pour Excel français
+        csv += `"${subject.name}";${subject.coefficient};${subject.lastScore.toFixed(1).replace('.', ',')}/20;${formatScoreAvecCoefficient(subject.lastScore, subject.coefficient).replace('.', ',')}\n`;
       });
     
-    csv += `\nMOYENNE GÉNÉRALE,${student.totalCoefficients},${student.averageScore.toFixed(2)}/20,${formatScoreAvecCoefficient(student.averageScore, student.totalCoefficients)}\n`;
-    csv += `APPRECIATION,—,${getAppreciation(student.averageScore)},—\n`;
+    csv += `\nMOYENNE GENERALE;${student.totalCoefficients};${student.averageScore.toFixed(2).replace('.', ',')}/20;${formatScoreAvecCoefficient(student.averageScore, student.totalCoefficients).replace('.', ',')}\n`;
+    csv += `APPRECIATION;;${getAppreciation(student.averageScore)};\n`;
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    // Ajouter BOM pour Excel
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `Bulletin_${student.nom}_${student.prenom}_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
   };
 
-  // Export PDF
+  // Export PDF sans "https"
   const exportClassPDF = (classe) => {
     const allSubjectsSet = new Set();
     classe.students.forEach(student => {
@@ -481,6 +490,7 @@ const StudentResults = () => {
         
         <div class="footer">
           <p>Document généré le ${new Date().toLocaleString('fr-FR')}</p>
+          <p>Système de Gestion des Résultats Scolaires</p>
         </div>
       </body>
       </html>
@@ -1177,7 +1187,7 @@ const StudentResults = () => {
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         <div style={{ marginBottom: '2rem' }}>
           <h1 style={{ margin: 0, fontSize: '2.5rem', color: '#1f2937', fontWeight: 'bold' }}>
-            📚 Système de Gestion des Résultats
+            Gestion Scolaire
           </h1>
           <p style={{ margin: '0.5rem 0 0 0', fontSize: '1.125rem', color: '#6b7280' }}>
             Consultation des notes et bulletins scolaires
