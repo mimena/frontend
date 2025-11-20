@@ -1404,8 +1404,7 @@ return () => { if (monitorId) clearInterval(monitorId); };
       setLoading(false);
     }
   };
-
-  const handleRetryConnection = async () => {
+const handleRetryConnection = async () => {
     setIsRetrying(true);
     setRetryCount(prev => prev + 1);
     try {
@@ -1421,17 +1420,14 @@ return () => { if (monitorId) clearInterval(monitorId); };
   };
 
   const handleLogout = async () => {
-    if (window.confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-      try {
-        await signOut(auth);
-        setSelectedYear(null);
-        localStorage.removeItem('anneeScolaire');
-        setShowProfileMenu(false);
-      } catch (error) {
-        setError('Erreur lors de la déconnexion');
-      }
+    try {
+      await signOut(auth);
+      setSelectedYear(null);
+      setShowProfileMenu(false);
+    } catch (error) {
+      setError('Erreur lors de la déconnexion');
     }
-  };
+};
 
   const handleChangeYear = () => {
     setSelectedYear(null);
