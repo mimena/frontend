@@ -910,21 +910,11 @@ const App = () => {
   useEffect(() => {
     if (!currentUser) return;
     
-    // Charger l'année sauvegardée ou sélectionner l'année en cours par défaut
-    const savedYear = localStorage.getItem('anneeScolaire');
-    if (savedYear) {
-      setSelectedYear(savedYear);
-    } else {
-      // Par défaut, sélectionner l'année en cours
-      const currentYear = getCurrentSchoolYear();
-      setSelectedYear(currentYear);
-      localStorage.setItem('anneeScolaire', currentYear);
-    }
+    // Ne rien charger - forcer la sélection d'année
     
     const savedTheme = localStorage.getItem('darkMode');
     if (savedTheme !== null) setDarkMode(savedTheme === 'true');
     initializeApp();
-
 // Vérification de connexion simplifiée
 const checkConnection = async () => {
   try {
@@ -957,10 +947,9 @@ return () => { if (monitorId) clearInterval(monitorId); };
 
   const handleYearSelected = (year) => {
     setSelectedYear(year);
-    localStorage.setItem('anneeScolaire', year);
-    // Charger les données spécifiques à cette année
+    // Ne plus sauvegarder l'année
     loadDataForYear(year);
-  };
+};
 
   const initializeApp = async () => {
     setLoading(true);
