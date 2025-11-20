@@ -516,7 +516,10 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
         <head>
           <title>Statistiques Scolaires ${selectedYear}</title>
           <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
+            body { 
+              font-family: Arial, sans-serif; 
+              margin: 20px; 
+            }
             h1 { color: #333; text-align: center; }
             h2 { color: #555; border-bottom: 2px solid #eee; padding-bottom: 5px; }
             .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 20px 0; }
@@ -526,9 +529,23 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
             th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
             th { background-color: #f2f2f2; }
             .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+            
+            /* CORRECTION : Cacher l'URL lors de l'impression */
             @media print {
               body { margin: 10px; }
               .no-print { display: none; }
+              /* Cache l'URL dans l'en-tête */
+              @page { margin: 0; }
+              /* Cache l'URL et le titre du document */
+              ::-webkit-scrollbar { display: none; }
+            }
+            
+            /* Alternative pour tous les navigateurs */
+            @media print {
+              /* Supprime l'URL de l'en-tête */
+              body::before { display: none; }
+              /* Supprime le titre du document */
+              head { display: none; }
             }
           </style>
         </head>
@@ -592,6 +609,18 @@ const SchoolStatisticsWithHistory = ({ students, subjects, selectedYear: propSel
           <button class="no-print" onclick="window.print()" style="position: fixed; top: 20px; right: 20px; padding: 10px 20px; background: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer;">
             Imprimer
           </button>
+          
+          <script>
+            // Auto-impression et fermeture après impression
+            window.onload = function() {
+              window.print();
+            };
+            
+            // Fermer la fenêtre après impression
+            window.onafterprint = function() {
+              window.close();
+            };
+          </script>
         </body>
         </html>
       `;
