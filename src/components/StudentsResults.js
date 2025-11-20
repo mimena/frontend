@@ -374,22 +374,24 @@ const StudentResults = () => {
       }));
 
     const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Bulletin de Classe - ${classe.name}</title>
-        <style>
-          @media print {
-            @page { margin: 1cm; }
-            body { margin: 0; }
-          }
-          body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            color: #000;
-          }
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Bulletin de Classe - ${classe.name}</title>
+          <style>
+            @media print {
+              @page { 
+                margin: 0.5cm 1cm 0.5cm 1cm;
+                size: A4 landscape;
+              }
+              body { margin: 0; padding: 0; }
+              header, footer { display: none; }
+            }
+            @page :first {
+              margin-top: 0.5cm;
+            }
           .header {
             text-align: center;
             margin-bottom: 30px;
